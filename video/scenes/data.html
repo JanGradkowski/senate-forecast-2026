@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Data</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <link rel="stylesheet" href="common.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+</head>
+<body>
+<script type="module">
+import { boot, el, place, show, prog, svg, header, fmtInt, easeOut } from "./common.js";
+
+boot({
+  duration: 5.2,
+  async setup(data) {
+    const h = data.history;
+    const head = header(0, "It learns from every Senate race since 1998");
+
+    // ---- counters
+    const stats = [
+      { v: h.n_elections, label: `elections, ${h.first}–${h.last}` },
+      { v: h.n_races, label: "Senate races" },
+      { v: h.n_polls, label: "polls in those races" },
+      { v: data.polls.n_polls_2026, label: "polls of 2026 races" },
+    ];
+    const blocks = stats.map((s, i) => {
+      const b = place(el("div", "v-stat"), 120 + i * 430, 296);
+      const n = el("div", "v-num", "0", b);
+      el("div", "v-label", s.label, b);
+      return { b, n, s };
+    });
+
+    // ---- one square per race, by election year: Democrat-or-independent wins first, then Republican
+    const COLS = 5, ROWS = 8, CELL = 22, SQ = 18, GAP = 15, X0 = 120, Y0 = 600;
+    const GW = COLS * CELL - (CELL - SQ);
+    const g = svg();
+    const squares = [];
+    let k = 0;
+    h.by_cycle.forEach((c, gi) => {
+      const gx = X0 + gi * (GW + GAP);
+      const n = c.nr_won + c.r_won;
+      for (let i = 0; i < n; i++) {
+        const col = i % COLS, row = Math.floor(i / COLS);
+        squares.push({ x: gx + col * CELL, y: Y0 + (ROWS - 1 - row) * CELL, f: i < c.nr_won ? "var(--d-lean)" : "var(--r-lean)", k: k++ });
+      }
+      g.append("text").attr("class", "v-tick yr").attr("x", gx + GW / 2).attr("y", Y0 + ROWS * CELL + 40).attr("text-anchor", "middle").text(c.cycle);
+    });
+    const rects = g.append("g").selectAll("rect").data(squares).join("rect")
+      .attr("x", (d) => d.x).attr("y", (d) => d.y).attr("width", SQ).attr("height", SQ).attr("rx", 3).style("fill", (d) => d.f);
+    const years = g.selectAll("text.yr");
+    const appear = (d) => 0.8 + (d.k / squares.length) * 2.0; // left-to-right sweep
+
+    const legend = place(el("div", "v-label"), 120, 872);
+    legend.innerHTML = `<span class="v-swatch" style="background:var(--d-lean)"></span>Democrat or independent won` +
+      `<span style="display:inline-block;width:48px"></span><span class="v-swatch" style="background:var(--r-lean)"></span>Republican won`;
+
+    return {
+      render(t) {
+        head.render(t);
+        blocks.forEach(({ b, n, s }, i) => {
+          show(b, prog(t, 0.45 + i * 0.12, 0.6));
+          let v;
+          if (i === 1) v = squares.filter((d) => t >= appear(d) + 0.15).length; // counts the squares on screen
+          else v = s.v * easeOut(Math.max(0, Math.min(1, (t - (0.6 + i * 0.35)) / 1.6)));
+          n.textContent = fmtInt(v);
+        });
+        rects.attr("opacity", (d) => prog(t, appear(d), 0.3)).attr("transform", (d) => {
+          const k = prog(t, appear(d), 0.4);
+          return `translate(0,${(1 - k) * 8})`;
+        });
+        years.attr("opacity", (d, i, nodes) => prog(t, 0.8 + (i / nodes.length) * 2.0, 0.5));
+        show(legend, prog(t, 2.6, 0.6));
+      },
+    };
+  },
+});
+</script>
+</body>
+</html>

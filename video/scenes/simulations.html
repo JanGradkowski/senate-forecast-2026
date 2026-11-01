@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Simulations</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <link rel="stylesheet" href="common.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+  <style>
+    .count .v-label { margin-top: 6px; }
+    .count .v-num { font-size: 64px; }
+    .big .v-num { font-size: 168px; color: var(--d-likely); }
+    .big .v-num small { font-size: 84px; font-weight: 700; letter-spacing: 0; margin-left: 2px; }
+    .big .v-label { width: 400px; margin-top: 10px; }
+    .big .r { margin-top: 26px; font-size: 30px; color: var(--ink-2); }
+    .big .r b { color: var(--r-likely); font-weight: 800; }
+  </style>
+</head>
+<body>
+<script type="module">
+import { boot, el, place, show, prog, svg, header, fmtInt, easeOut, clamp01 } from "./common.js";
+
+boot({
+  duration: 7.6,
+  async setup(data) {
+    const S = data.seats;
+    const head = header(5, `${fmtInt(S.n_draws)} simulated elections, each with its own seat count`);
+
+    // ---- histogram of Democratic + independent seats (the GUI's histogram, larger)
+    const L = 130, R = 1340, T = 380, B = 840;
+    const x = d3.scaleBand().domain(S.dist.map((d) => d.seats)).range([L, R]).paddingInner(0.14);
+    const pmax = d3.max(S.dist, (d) => d.p);
+    const y = d3.scaleLinear().domain([0, pmax]).range([B, T]);
+    const s = svg();
+    s.append("line").attr("class", "v-zero").attr("x1", L).attr("x2", R).attr("y1", B).attr("y2", B);
+    const ticks = s.append("g").selectAll("text").data(S.dist).join("text").attr("class", "v-tick")
+      .attr("x", (d) => x(d.seats) + x.bandwidth() / 2).attr("y", B + 40).attr("text-anchor", "middle").text((d) => d.seats);
+    const bars = s.append("g").selectAll("rect").data(S.dist).join("rect")
+      .attr("x", (d) => x(d.seats)).attr("width", x.bandwidth()).attr("rx", 4);
+    const muted = d3.color(getComputedStyle(document.documentElement).getPropertyValue("--muted").trim());
+    const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    const toD = d3.interpolateRgb(muted, css("--d-lean")), toR = d3.interpolateRgb(muted, css("--r-lean"));
+
+    const count = place(el("div", "count"), 1400, 300);
+    const cn = el("div", "v-num", "0", count);
+    el("div", "v-label", "simulated elections", count);
+
+    // majority line between 50 and 51, as in the GUI
+    const mx = x(S.majority) - (x.step() * x.paddingInner()) / 2;
+    const maj = s.append("g");
+    maj.append("line").attr("x1", mx).attr("x2", mx).attr("y1", T - 50).attr("y2", B).style("stroke", "var(--ink)").attr("stroke-width", 3).attr("stroke-dasharray", "6 6");
+    maj.append("text").attr("class", "v-ann").attr("x", mx - 16).attr("y", T - 22).attr("text-anchor", "end").text(`${S.majority} seats for control`);
+
+    // 50-50 tie
+    const tie = S.dist.find((d) => d.seats === 50);
+    const tieG = s.append("g");
+    const tx0 = x(50) + x.bandwidth() / 2, ty0 = y(tie.p) - 12;
+    tieG.append("path").attr("d", `M${tx0},${ty0} L${tx0},${ty0 - 60} L${tx0 - 30},${ty0 - 60}`).attr("fill", "none").style("stroke", "var(--ink-2)").attr("stroke-width", 2);
+    tieG.append("text").attr("class", "v-ann").attr("x", tx0 - 40).attr("y", ty0 - 70).attr("text-anchor", "end").text(`50–50 tie: ${Math.round(tie.p * 100)}%`);
+    tieG.append("text").attr("class", "v-ann-2").attr("x", tx0 - 40).attr("y", ty0 - 32).attr("text-anchor", "end").text("the Republican VP breaks it");
+
+    // median and the 80% range
+    const med = S.dist.find((d) => d.seats === S.median);
+    const medG = s.append("g");
+    medG.append("text").attr("class", "v-ann-2").attr("x", x(S.median) + x.bandwidth() / 2).attr("y", y(med.p) - 16).attr("text-anchor", "middle").text("median");
+    const [lo, hi] = S.range80;
+    const bx0 = x(lo), bx1 = x(hi) + x.bandwidth(), by = B + 64;
+    const rngG = s.append("g");
+    rngG.append("path").attr("d", `M${bx0},${by - 10} L${bx0},${by} L${bx1},${by} L${bx1},${by - 10}`).attr("fill", "none").style("stroke", "var(--ink-2)").attr("stroke-width", 2);
+    rngG.append("text").attr("class", "v-ann-2").attr("x", (bx0 + bx1) / 2).attr("y", by + 40).attr("text-anchor", "middle").text(`80% range: ${lo} to ${hi} seats`);
+
+    // ---- the headline number
+    const big = place(el("div", "big"), 1400, 478);
+    const bn = el("div", "v-num", null, big);
+    el("div", "v-label", `of simulations give Democrats + independents ${S.majority} seats or more`, big);
+    const rr = el("div", "r", null, big);
+    rr.innerHTML = `Republican control: <b>${Math.round((1 - S.p_control_nr) * 100)}%</b>`;
+    const target = Math.round(S.p_control_nr * 100);
+
+    return {
+      render(t) {
+        head.render(t);
+        show(count, prog(t, 0.4, 0.6));
+        const kd = easeOut(clamp01((t - 0.6) / 2.4)); // draws accumulate
+        cn.textContent = fmtInt(S.n_draws * kd);
+        const kc = prog(t, 3.1, 0.6);
+        bars.attr("y", (d) => y(d.p * kd)).attr("height", (d) => Math.max(0, B - y(d.p * kd)))
+          .style("fill", (d) => (d.seats >= S.majority ? toD(kc) : toR(kc)));
+        ticks.attr("opacity", prog(t, 0.5, 0.6));
+        maj.attr("opacity", prog(t, 3.0, 0.6));
+        show(big, prog(t, 3.8, 0.6));
+        bn.innerHTML = `${Math.round(target * prog(t, 3.9, 1.2))}<small>%</small>`;
+        tieG.attr("opacity", prog(t, 5.0, 0.6));
+        medG.attr("opacity", prog(t, 5.7, 0.6));
+        rngG.attr("opacity", prog(t, 5.9, 0.6));
+      },
+    };
+  },
+});
+</script>
+</body>
+</html>

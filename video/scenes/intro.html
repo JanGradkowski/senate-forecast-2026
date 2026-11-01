@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Intro</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <link rel="stylesheet" href="common.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+  <script src="/video/node_modules/topojson-client/dist/topojson-client.min.js"></script>
+  <style>
+    .hook { font-size: 108px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; margin: 0; }
+    .hook span { display: block; }
+    .title { font-size: 116px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin: 0; }
+    .seg-label { font-size: 28px; color: var(--ink-2); white-space: nowrap; }
+    .seg-label b { color: var(--ink); font-weight: 800; }
+  </style>
+</head>
+<body>
+<script type="module">
+import { boot, el, place, show, prog, svg, fmtInt, lerp } from "./common.js";
+
+boot({
+  duration: 9.5,
+  async setup(data) {
+    // ---- map (same projection call as the GUI's map.js, fitted to the right half)
+    const us = await (await fetch("/video/node_modules/us-atlas/states-10m.json")).json();
+    const states = topojson.feature(us, us.objects.states).features;
+    const raceStates = new Set(data.races.map((r) => r.state));
+    const projection = d3.geoAlbersUsa().fitExtent([[1010, 190], [1830, 870]], { type: "FeatureCollection", features: states });
+    const path = d3.geoPath(projection);
+    const s = svg();
+    const mapG = s.append("g");
+    const shapes = mapG.selectAll("path").data(states).join("path").attr("d", path)
+      .attr("stroke", "var(--surface)").attr("stroke-width", 1.2).style("fill", "var(--norace)");
+    const xs = states.map((d) => path.centroid(d)[0]).filter(Number.isFinite);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs);
+    const order = (d) => (path.centroid(d)[0] - x0) / (x1 - x0); // west -> east sweep
+    const toss = d3.color(getComputedStyle(document.documentElement).getPropertyValue("--toss").trim());
+    const norace = d3.color(getComputedStyle(document.documentElement).getPropertyValue("--norace").trim());
+    const mix = d3.interpolateRgb(norace, toss);
+
+    // ---- hook
+    const hook = place(el("h1", "hook"), 120, 380);
+    const h1 = el("span", null, "Who controls the Senate", hook);
+    const h2 = el("span", null, "after 2026?", hook);
+
+    // ---- title block
+    const kicker = place(el("p", "v-kicker", "2026 U.S. midterm elections"), 120, 250);
+    const title = place(el("h1", "title", "Senate forecast"), 120, 296);
+    const sub = place(el("p", "v-body", `${data.races.length} races, polls plus fundamentals,`), 120, 440);
+    const sub2 = place(el("p", "v-body", `simulated ${fmtInt(data.seats.n_draws)} times`), 120, 484);
+
+    // ---- seats: not up | on the ballot | not up, with the majority line (as in the GUI's seat bar)
+    const BX = 120, BW = 700, BY = 680, BH = 44;
+    const nu = data.seats.not_up, up = data.races.length, maj = data.seats.majority;
+    const bx = (v) => BX + (v / 100) * BW;
+    const segs = [
+      { a: 0, b: nu.nr, f: "var(--held-d)" },
+      { a: nu.nr, b: nu.nr + up, f: "var(--toss)" },
+      { a: nu.nr + up, b: 100, f: "var(--held-r)" },
+    ];
+    const barG = s.append("g");
+    const rects = barG.selectAll("rect").data(segs).join("rect").attr("y", BY).attr("height", BH).attr("rx", 5).style("fill", (d) => d.f);
+    const tick = s.append("line").attr("x1", bx(maj)).attr("x2", bx(maj)).attr("stroke", "var(--ink)").attr("stroke-width", 3);
+    const tickLbl = place(el("div", "seg-label"), bx(maj), BY - 52, { transform: "translateX(-50%)" });
+    tickLbl.innerHTML = `<b>${maj}</b> seats for control`;
+    const lblL = place(el("div", "seg-label"), BX, BY + BH + 14);
+    lblL.innerHTML = `<b>${nu.nr}</b> Dem + Ind not up`;
+    // the middle label sits on a second line, clear of its neighbours
+    const lblM = place(el("div", "seg-label"), bx(nu.nr + up / 2), BY + BH + 58, { transform: "translateX(-50%)" });
+    lblM.innerHTML = `<b>${up}</b> on the ballot`;
+    const lblR = place(el("div", "seg-label"), BX + BW, BY + BH + 14, { transform: "translateX(-100%)" });
+    lblR.innerHTML = `<b>${nu.r}</b> Rep not up`;
+
+    return {
+      render(t) {
+        // hook in, then out
+        const hin1 = prog(t, 0.15, 0.7), hin2 = prog(t, 0.4, 0.7), hout = prog(t, 2.9, 0.55);
+        show(h1, hin1 * (1 - hout)); show(h2, hin2 * (1 - hout));
+        hook.style.transform = `translateY(${-28 * hout}px)`;
+
+        // map: faint during the hook, then the 35 races light up west to east
+        mapG.attr("opacity", lerp(0, 0.4, prog(t, 0, 1.2)) + 0.6 * prog(t, 3.5, 0.8));
+        shapes.style("fill", (d) => {
+          if (!raceStates.has(d.properties.name)) return "var(--norace)";
+          return mix(prog(t, 3.8 + 1.6 * order(d), 0.5));
+        });
+
+        // title
+        show(kicker, prog(t, 3.3, 0.6)); show(title, prog(t, 3.4, 0.7), 24);
+        show(sub, prog(t, 3.65, 0.6)); show(sub2, prog(t, 3.75, 0.6));
+
+        // seat bar grows outward from the not-up seats, then the seats on the ballot fill in
+        const kNot = prog(t, 4.6, 0.7), kUp = prog(t, 5.0, 0.8);
+        rects.each(function (d, i) {
+          const k = i === 1 ? kUp : kNot;
+          const w = Math.max(0, (bx(d.b) - bx(d.a) - 3) * k);
+          const x = i === 2 ? bx(d.b) - 1.5 - w : bx(d.a) + 1.5;
+          d3.select(this).attr("x", x).attr("width", w);
+        });
+        const kt = prog(t, 5.6, 0.5);
+        tick.attr("y1", BY - 8).attr("y2", BY + BH + 8).attr("opacity", kt);
+        show(tickLbl, kt, 10);
+        show(lblL, prog(t, 5.2, 0.6), 10); show(lblR, prog(t, 5.2, 0.6), 10);
+        show(lblM, prog(t, 5.5, 0.6), 10);
+      },
+    };
+  },
+});
+</script>
+</body>
+</html>

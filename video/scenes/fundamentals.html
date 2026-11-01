@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Fundamentals</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <link rel="stylesheet" href="common.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+  <style>
+    .ing { width: 540px; }
+    .ing .t { font-size: 34px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+    .ing .d { font-size: 28px; color: var(--ink-2); line-height: 1.3; margin-top: 4px; }
+    .ing .big { font-size: 72px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); line-height: 1; margin-top: 8px; }
+    .ing .big small { font-size: 34px; font-weight: 700; letter-spacing: 0; color: var(--ink-2); margin-left: 10px; }
+  </style>
+</head>
+<body>
+<script type="module">
+import { boot, el, place, show, prog, svg, header, sideLabel } from "./common.js";
+
+boot({
+  duration: 7.0,
+  async setup(data) {
+    const F = data.fundamentals;
+    const head = header(1, "Fundamentals: a state’s lean predicts most results");
+
+    // ---- scatter: state lean vs actual Senate margin, 473 races
+    const L = 250, R = 1130, T = 330, B = 880;
+    const x = d3.scaleLinear().domain([-55, 45]).range([L, R]);
+    const y = d3.scaleLinear().domain([-85, 75]).range([B, T]);
+    const s = svg();
+    const axis = s.append("g");
+    [-40, -20, 20, 40].forEach((v) => axis.append("line").attr("class", "v-grid").attr("x1", x(v)).attr("x2", x(v)).attr("y1", T).attr("y2", B));
+    [-80, -40, 40].forEach((v) => axis.append("line").attr("class", "v-grid").attr("x1", L).attr("x2", R).attr("y1", y(v)).attr("y2", y(v)));
+    axis.append("line").attr("class", "v-zero").attr("x1", x(0)).attr("x2", x(0)).attr("y1", T).attr("y2", B);
+    axis.append("line").attr("class", "v-zero").attr("x1", L).attr("x2", R).attr("y1", y(0)).attr("y2", y(0));
+    [-40, -20, 0, 20, 40].forEach((v) => axis.append("text").attr("class", "v-tick").attr("x", x(v)).attr("y", B + 44).attr("text-anchor", "middle").text(sideLabel(v)));
+    [-80, -40, 0, 40].forEach((v) => axis.append("text").attr("class", "v-tick").attr("x", L - 18).attr("y", y(v) + 10).attr("text-anchor", "end").text(sideLabel(v)));
+    axis.append("text").attr("class", "v-axis-title").attr("x", (L + R) / 2).attr("y", B + 100).attr("text-anchor", "middle").text("State’s lean in presidential elections (points)");
+    axis.append("text").attr("class", "v-axis-title").attr("x", 120).attr("y", T - 28).text("Senate result (margin, points)");
+
+    const pts = F.points.map(([lean, m]) => ({ lean, m })).sort((a, b) => a.lean - b.lean);
+    const dots = s.append("g").selectAll("circle").data(pts).join("circle")
+      .attr("cx", (d) => x(d.lean)).attr("cy", (d) => y(d.m)).attr("r", 6.5)
+      .style("fill", (d) => (d.m > 0 ? "var(--d-lean)" : "var(--r-lean)"));
+    const appear = (i) => 0.8 + (i / pts.length) * 1.8;
+
+    // Huber robust fit of margin on lean (computed in prepare_data.py from the same 473 races)
+    const fx0 = -55, fx1 = 45, fy = (v) => F.huber.intercept + F.huber.slope * v;
+    const line = s.append("line").attr("x1", x(fx0)).attr("y1", y(fy(fx0))).attr("x2", x(fx1)).attr("y2", y(fy(fx1)))
+      .attr("stroke", "var(--ink)").attr("stroke-width", 4).attr("stroke-linecap", "round");
+    const len = Math.hypot(x(fx1) - x(fx0), y(fy(fx1)) - y(fy(fx0)));
+    line.attr("stroke-dasharray", `${len} ${len}`);
+    const fitLbl = s.append("text").attr("class", "v-ann").attr("x", x(fx1)).attr("y", y(fy(fx1)) - 22).attr("text-anchor", "end").text("Robust fit");
+
+    // ---- the four ingredients
+    const items = [
+      ["State’s partisan lean", "from earlier presidential results"],
+      ["National mood", "the generic-ballot polling average"],
+      ["Midterm penalty", "for the president’s party"],
+    ];
+    const ing = items.map(([a, b], i) => {
+      const d = place(el("div", "ing"), 1260, 330 + i * 128);
+      el("div", "t", a, d); el("div", "d", b, d);
+      return d;
+    });
+    const inc = place(el("div", "ing"), 1260, 330 + 3 * 128);
+    el("div", "t", "Incumbency", inc);
+    const big = el("div", "big", null, inc);
+    big.innerHTML = `${F.incumbency_pts.toFixed(1)}<small>points</small>`;
+    const note = place(el("p", "v-small"), 1260, 860, { width: "560px" });
+    note.textContent = "A Huber robust regression: landslides can’t drag the line.";
+
+    return {
+      render(t) {
+        head.render(t);
+        axis.attr("opacity", prog(t, 0.4, 0.6));
+        dots.attr("opacity", (d, i) => 0.78 * prog(t, appear(i), 0.35));
+        const kl = prog(t, 2.8, 0.8);
+        line.attr("stroke-dashoffset", len * (1 - kl)).attr("opacity", kl > 0 ? 1 : 0);
+        fitLbl.attr("opacity", prog(t, 3.4, 0.5));
+        ing.forEach((d, i) => show(d, prog(t, 3.3 + i * 0.3, 0.6)));
+        show(inc, prog(t, 4.2, 0.6));
+        show(note, prog(t, 4.8, 0.6));
+      },
+    };
+  },
+});
+</script>
+</body>
+</html>

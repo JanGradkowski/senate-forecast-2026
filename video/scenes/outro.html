@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Outro</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <link rel="stylesheet" href="common.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+  <style>
+    .pair { display: flex; gap: 96px; align-items: flex-start; }
+    .pair .v-num { font-size: 184px; }
+    .pair .v-num small { font-size: 92px; font-weight: 700; letter-spacing: 0; margin-left: 2px; }
+    .pair .v-label { width: 520px; margin-top: 16px; font-size: 32px; }
+    .dot { font-size: 120px; font-weight: 800; color: var(--muted); line-height: 1.2; }
+    .url { font-size: 40px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; margin: 0; }
+    .fade { position: absolute; inset: 0; background: var(--page); pointer-events: none; }
+  </style>
+</head>
+<body>
+<script type="module">
+import { boot, el, place, show, prog, fmtInt } from "./common.js";
+
+boot({
+  duration: 7.5,
+  async setup(data) {
+    const S = data.seats;
+    const asOf = d3.timeFormat("%-d %B %Y")(d3.timeParse("%d %b %Y")(data.as_of));
+    const kicker = place(el("p", "v-kicker", `2026 Senate forecast · ${asOf}`), 120, 200);
+
+    const pair = place(el("div", "pair"), 120, 262);
+    const a = el("div", null, null, pair);
+    const an = el("div", "v-num", null, a);
+    an.style.color = "var(--d-likely)";
+    an.innerHTML = `${Math.round(S.p_control_nr * 100)}<small>%</small>`;
+    el("div", "v-label", `of ${fmtInt(S.n_draws)} simulated elections end with Democrats + independents in control`, a);
+    const b = el("div", null, null, pair);
+    el("div", "v-num", `${S.median}–${100 - S.median}`, b);
+    el("div", "v-label", "median seats, Democrats + independents to Republicans", b);
+
+    const repo = place(el("div"), 120, 720);
+    el("p", "v-small", "Code, data and full methodology", repo);
+    el("p", "url", "github.com/JanGradkowski/senate-forecast-2026", repo).style.marginTop = "8px";
+    const disc = place(el("p", "v-body", "Model forecast, not a betting price."), 120, 880);
+    const fade = el("div", "fade");
+
+    return {
+      render(t) {
+        show(kicker, prog(t, 0.2, 0.6));
+        show(a, prog(t, 0.3, 0.7), 24);
+        show(b, prog(t, 0.6, 0.7), 24);
+        show(repo, prog(t, 1.6, 0.6));
+        show(disc, prog(t, 2.2, 0.6));
+        fade.style.opacity = prog(t, 6.9, 0.6);
+      },
+    };
+  },
+});
+</script>
+</body>
+</html>

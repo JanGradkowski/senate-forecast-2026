@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Uncertainty</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <link rel="stylesheet" href="common.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+  <style>
+    .card2 { width: 540px; padding: 18px 0 18px 26px; border-left: 4px solid var(--grid); }
+    .card2 .t { font-size: 34px; font-weight: 700; color: var(--ink); }
+    .card2 .t b { font-weight: 800; margin-left: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+    .card2 .d { font-size: 28px; color: var(--ink-2); margin-top: 4px; }
+    .swing { font-size: 28px; font-weight: 700; fill: var(--ink); }
+  </style>
+</head>
+<body>
+<script type="module">
+import { boot, el, place, show, prog, svg, header, sideLabel, binOf, fill, rng, lerp, easeInOut } from "./common.js";
+
+boot({
+  duration: 7.2,
+  async setup(data) {
+    const E = data.errors;
+    const head = header(4, "Polling misses are shared, so states move together");
+
+    // ---- one row per competitive race (|margin| < 10), at its projected margin
+    const ROW = 44, Y0 = 312, L = 440, R = 1150;
+    const x = d3.scaleLinear().domain([-15, 15]).range([L, R]).clamp(true);
+    const s = svg();
+    const axis = s.append("g");
+    const yEnd = Y0 + E.races.length * ROW;
+    [-10, -5, 5, 10].forEach((v) => axis.append("line").attr("class", "v-grid").attr("x1", x(v)).attr("x2", x(v)).attr("y1", Y0 - 10).attr("y2", yEnd));
+    axis.append("line").attr("class", "v-zero").attr("x1", x(0)).attr("x2", x(0)).attr("y1", Y0 - 10).attr("y2", yEnd);
+    [-10, -5, 0, 5, 10].forEach((v) => axis.append("text").attr("class", "v-tick").attr("x", x(v)).attr("y", yEnd + 40).attr("text-anchor", "middle").text(sideLabel(v)));
+
+    // illustrative draws: national at ±1 sigma, regional and race-level Student-t draws (fixed seed)
+    const rand = rng(2026);
+    const normal = () => Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand());
+    const tdraw = (df) => { let c = 0; for (let i = 0; i < df; i++) c += normal() ** 2; return normal() / Math.sqrt(c / df); };
+    const regions = [...new Set(E.races.map((r) => r.region))].sort();
+    const regDraw = Object.fromEntries(regions.map((g) => [g, E.sigma_reg * tdraw(E.t_df)]));
+    const rows = E.races.map((r, i) => ({ ...r, y: Y0 + i * ROW + ROW / 2, race: 2 * tdraw(E.t_df) }));
+
+    const g = s.append("g");
+    const rowG = g.selectAll("g").data(rows).join("g");
+    rowG.append("text").attr("class", "v-ann-2").attr("x", 400).attr("y", (d) => d.y + 10).attr("text-anchor", "end").style("fill", "var(--ink)").text((d) => d.state);
+    rowG.append("line").attr("x1", (d) => x(d.margin)).attr("x2", (d) => x(d.margin)).attr("y1", (d) => d.y - 15).attr("y2", (d) => d.y + 15)
+      .style("stroke", "var(--muted)").attr("stroke-width", 3);
+    const dots = rowG.append("circle").attr("r", 13).attr("cy", (d) => d.y).style("stroke", "var(--surface)").attr("stroke-width", 2);
+    const swingLbl = s.append("text").attr("class", "swing").attr("y", Y0 - 30).attr("text-anchor", "middle");
+
+    // ---- the three error levels
+    const cards = [
+      ["National", `σ ${E.sigma_nat.toFixed(1)} points`, "one miss shared by every race"],
+      ["Regional", `σ ${E.sigma_reg.toFixed(1)} point`, `shared within each of ${regions.length} regions`],
+      ["Race", "", "each race’s own uncertainty"],
+    ].map(([a, b, c], i) => {
+      const d = place(el("div", "card2"), 1260, 312 + i * 150);
+      const tt = el("div", "t", null, d); tt.innerHTML = b ? `${a}<b>${b}</b>` : a;
+      el("div", "d", c, d);
+      return d;
+    });
+    const foot = place(el("p", "v-small"), 1260, 790, { width: "560px" });
+    foot.textContent = `All Student-t (${E.t_df} degrees of freedom): big misses happen.`;
+
+    // shift states: [national, regional on?, race on?], eased between keyframes
+    const keys = [
+      { at: 0, n: 0, g: 0, r: 0 },
+      { at: 1.6, n: E.sigma_nat, g: 0, r: 0 },
+      { at: 2.6, n: -E.sigma_nat, g: 0, r: 0 },
+      { at: 3.6, n: 0, g: 1, r: 0 },
+      { at: 4.6, n: 0, g: 0, r: 1 },
+      { at: 5.6, n: 0, g: 0, r: 0 },
+    ];
+    const MOVE = 0.7;
+    function state(t) {
+      let cur = keys[0];
+      for (let i = 1; i < keys.length; i++) {
+        const k = easeInOut(Math.max(0, Math.min(1, (t - keys[i].at) / MOVE)));
+        if (k <= 0) break;
+        cur = { n: lerp(cur.n, keys[i].n, k), g: lerp(cur.g, keys[i].g, k), r: lerp(cur.r, keys[i].r, k) };
+      }
+      return cur;
+    }
+    // which error level is being shown: its card lights up, the others dim (eased, 400 ms)
+    const phases = [{ from: 1.4, to: 3.5, card: 0 }, { from: 3.5, to: 4.5, card: 1 }, { from: 4.5, to: 5.6, card: 2 }];
+    const inPhase = (p, t) => prog(t, p.from, 0.4) * (1 - prog(t, p.to, 0.4));
+    const ink = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+    const grid = getComputedStyle(document.documentElement).getPropertyValue("--grid").trim();
+    const bar = d3.interpolateRgb(grid, ink);
+
+    return {
+      render(t) {
+        head.render(t);
+        axis.attr("opacity", prog(t, 0.4, 0.6));
+        rowG.attr("opacity", (d, i) => prog(t, 0.5 + i * 0.04, 0.5));
+        const st = state(t);
+        dots.attr("cx", (d) => x(d.margin + st.n + st.g * regDraw[d.region] + st.r * d.race))
+          .style("fill", (d) => fill(binOf(d.margin + st.n + st.g * regDraw[d.region] + st.r * d.race)));
+        // label the national swing while it is on screen
+        const nk = Math.min(1, Math.abs(st.n) / E.sigma_nat);
+        swingLbl.attr("x", x(st.n)).attr("opacity", nk).text(st.n >= 0 ? "national swing →" : "← national swing");
+        cards.forEach((c, i) => {
+          const k = prog(t, 0.8 + i * 0.2, 0.6);
+          const on = Math.max(...phases.filter((p) => p.card === i).map((p) => inPhase(p, t)));
+          const dim = Math.max(...phases.filter((p) => p.card !== i).map((p) => inPhase(p, t)));
+          show(c, k);
+          c.style.opacity = k * (1 - 0.6 * dim * (1 - on));
+          c.style.borderLeftColor = bar(on);
+        });
+        show(foot, prog(t, 1.4, 0.6));
+      },
+    };
+  },
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Blend</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <link rel="stylesheet" href="common.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+  <style>
+    .st .name { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+    .st .n { font-size: 30px; font-weight: 600; color: var(--ink-2); margin-top: 6px; }
+    .st .why { font-size: 28px; color: var(--muted); margin-top: 6px; width: 340px; line-height: 1.3; }
+    .leg { width: 400px; display: grid; grid-template-columns: 1fr auto; row-gap: 14px; column-gap: 28px; font-size: 30px; color: var(--ink-2); align-items: center; }
+    .leg .v { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+    .leg .k { display: inline-block; width: 28px; height: 14px; border-radius: 3px; margin-right: 12px; vertical-align: 2px; }
+    .leg .b { color: var(--ink); font-weight: 700; }
+  </style>
+</head>
+<body>
+<script type="module">
+import { boot, el, place, show, prog, svg, header, marginText, sideColor, normPdf, sideLabel, lerp, easeInOut } from "./common.js";
+
+boot({
+  duration: 7.0,
+  async setup(data) {
+    const head = header(3, "The blend: the more polls a race has, the more they count");
+    const L = 470, R = 1340;
+    const x = d3.scaleLinear().domain([-50, 25]).range([L, R]);
+    const tallest = Math.max(...data.blend.map((b) => normPdf(0, 0, b.sd_post)));
+    const s = svg();
+    const notes = { TX: "The polls dominate.", NE: "Fundamentals pull back." };
+
+    const panels = data.blend.map((b, i) => {
+      const top = 300 + i * 340, base = top + 230;
+      const yk = 200 / tallest; // px per unit density, shared by both panels
+      const g = s.append("g");
+      const axis = g.append("g");
+      [-40, -20, 20].forEach((v) => axis.append("line").attr("class", "v-grid").attr("x1", x(v)).attr("x2", x(v)).attr("y1", top).attr("y2", base));
+      axis.append("line").attr("class", "v-zero").attr("x1", x(0)).attr("x2", x(0)).attr("y1", top).attr("y2", base);
+      axis.append("line").attr("class", "v-zero").attr("x1", L).attr("x2", R).attr("y1", base).attr("y2", base);
+      [-40, -20, 0, 20].forEach((v) => axis.append("text").attr("class", "v-tick").attr("x", x(v)).attr("y", base + 42).attr("text-anchor", "middle").text(sideLabel(v, b.party_nr)));
+
+      const xs = d3.range(-50, 25.01, 0.25);
+      const yAt = (mu, sd, k) => (d) => base - k * yk * normPdf(d, mu, sd);
+      const shape = (mu, sd, k) => d3.area().x((d) => x(d)).y0(base).y1(yAt(mu, sd, k))(xs);
+      // outlines stop where the curve meets the baseline, so they never draw along the axis
+      const outline = (mu, sd, k) => d3.line().defined((d) => k * yk * normPdf(d, mu, sd) > 0.8).x((d) => x(d)).y(yAt(mu, sd, k))(xs);
+      const fundFill = g.append("path").style("fill", "var(--muted)").attr("fill-opacity", 0.22);
+      const fund = g.append("path").attr("fill", "none").style("stroke", "var(--muted)").attr("stroke-width", 3);
+      const blend = g.append("path").style("fill", sideColor(b.mu)).attr("fill-opacity", 0.85);
+      const poll = g.append("path").attr("fill", "none").style("stroke", "var(--ink-2)").attr("stroke-width", 3).attr("stroke-dasharray", "9 7");
+
+      const st = place(el("div", "st"), 120, top + 20);
+      el("div", "name", b.state, st);
+      el("div", "n", `${b.n_polls} polls`, st);
+      el("div", "why", notes[b.postal], st);
+
+      const leg = place(el("div", "leg"), 1400, top + 40);
+      const row = (key, label, value, cls) => {
+        const a = el("div", cls || null, null, leg); a.innerHTML = `${key}${label}`;
+        const v = el("div", "v", value, leg);
+        return [a, v];
+      };
+      const rows = [
+        row(`<i class="k" style="background:var(--muted);opacity:.6"></i>`, "Fundamentals", marginText(b.mu_f, b.party_nr)),
+        row(`<i class="k" style="background:none;border-top:3px dashed var(--ink-2);height:0;vertical-align:6px"></i>`, "Poll average", marginText(b.poll_avg, b.party_nr)),
+        row(`<i class="k" style="background:${sideColor(b.mu)}"></i>`, "Blend", marginText(b.mu, b.party_nr), "b"),
+      ];
+      return { b, g, axis, fund, fundFill, poll, blend, st, rows, shape, outline, start: 0.6 + i * 2.75 };
+    });
+
+    return {
+      render(t) {
+        head.render(t);
+        for (const p of panels) {
+          const t0 = p.start, b = p.b;
+          p.axis.attr("opacity", prog(t, t0, 0.5));
+          show(p.st, prog(t, t0, 0.6));
+          const kf = prog(t, t0 + 0.3, 0.6), kp = prog(t, t0 + 0.9, 0.6), kb = prog(t, t0 + 1.6, 0.8, easeInOut);
+          p.fundFill.attr("d", p.shape(b.mu_f, b.sd_f, kf)).attr("opacity", kf > 0 ? 1 : 0);
+          p.fund.attr("d", p.outline(b.mu_f, b.sd_f, kf)).attr("opacity", kf > 0 ? 1 : 0);
+          p.poll.attr("d", p.outline(b.poll_avg, b.sd_poll, kp)).attr("opacity", kp > 0 ? 1 : 0);
+          // the blend starts as the fundamentals and narrows onto the polls' side
+          p.blend.attr("d", p.shape(lerp(b.mu_f, b.mu, kb), lerp(b.sd_f, b.sd_post, kb), 1)).attr("opacity", prog(t, t0 + 1.6, 0.4));
+          p.rows.forEach(([a, v], i) => { const k = prog(t, t0 + 0.3 + i * 0.6 + (i === 2 ? 0.4 : 0), 0.5); show(a, k, 8); show(v, k, 8); });
+        }
+      },
+    };
+  },
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Validation</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <link rel="stylesheet" href="common.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+  <style>
+    .stat2 { width: 700px; display: grid; grid-template-columns: 290px 1fr; column-gap: 28px; align-items: center; }
+    .stat2 .v-num { font-size: 92px; }
+    .stat2 .v-label { font-size: 30px; }
+    .stat2 .v-label b { color: var(--ink); font-weight: 700; }
+    .key { font-size: 28px; color: var(--ink-2); margin-top: 8px; }
+    .key i { display: inline-block; width: 16px; height: 16px; border-radius: 50%; margin-right: 10px; vertical-align: 0; }
+  </style>
+</head>
+<body>
+<script type="module">
+import { boot, el, place, show, prog, svg, header, sideLabel, easeOut, clamp01 } from "./common.js";
+
+boot({
+  duration: 7.2,
+  async setup(data) {
+    const V = data.validation, H = data.history;
+    const head = header(6, `Tested on ${H.n_elections} past elections, each hidden from the model`);
+
+    // ---- forecast vs result, every race scored out of sample
+    const L = 250, T = 330, SZ = 560;
+    const x = d3.scaleLinear().domain([-80, 80]).range([L, L + SZ]).clamp(true);
+    const y = d3.scaleLinear().domain([-80, 80]).range([T + SZ, T]).clamp(true);
+    const s = svg();
+    const axis = s.append("g");
+    // the two "wrong call" quadrants, shaded
+    axis.append("rect").attr("x", x(-80)).attr("y", y(80)).attr("width", x(0) - x(-80)).attr("height", y(0) - y(80)).style("fill", "var(--surface-2)");
+    axis.append("rect").attr("x", x(0)).attr("y", y(0)).attr("width", x(80) - x(0)).attr("height", y(-80) - y(0)).style("fill", "var(--surface-2)");
+    [-40, 40].forEach((v) => {
+      axis.append("line").attr("class", "v-grid").attr("x1", x(v)).attr("x2", x(v)).attr("y1", T).attr("y2", T + SZ);
+      axis.append("line").attr("class", "v-grid").attr("x1", L).attr("x2", L + SZ).attr("y1", y(v)).attr("y2", y(v));
+    });
+    axis.append("line").attr("class", "v-zero").attr("x1", x(0)).attr("x2", x(0)).attr("y1", T).attr("y2", T + SZ);
+    axis.append("line").attr("class", "v-zero").attr("x1", L).attr("x2", L + SZ).attr("y1", y(0)).attr("y2", y(0));
+    axis.append("line").attr("x1", x(-80)).attr("y1", y(-80)).attr("x2", x(80)).attr("y2", y(80)).style("stroke", "var(--ink-2)").attr("stroke-width", 2).attr("stroke-dasharray", "6 8");
+    [-40, 0, 40].forEach((v) => {
+      axis.append("text").attr("class", "v-tick").attr("x", x(v)).attr("y", T + SZ + 42).attr("text-anchor", "middle").text(sideLabel(v));
+      axis.append("text").attr("class", "v-tick").attr("x", L - 18).attr("y", y(v) + 10).attr("text-anchor", "end").text(sideLabel(v));
+    });
+    axis.append("text").attr("class", "v-axis-title").attr("x", L + SZ / 2).attr("y", T + SZ + 96).attr("text-anchor", "middle").text("Forecast margin");
+    axis.append("text").attr("class", "v-axis-title").attr("x", 120).attr("y", T - 28).text("Actual result");
+    const wrong = axis.append("g").attr("class", "v-ann-2");
+    wrong.append("text").attr("x", x(-76)).attr("y", y(70)).text("wrong call");
+    wrong.append("text").attr("x", x(76)).attr("y", y(-70) + 10).attr("text-anchor", "end").text("wrong call");
+
+    const pts = V.points.map(([mu, m, miss], i) => ({ mu, m, miss, i }));
+    const dots = s.append("g").selectAll("circle").data(pts.sort((a, b) => a.miss - b.miss)).join("circle")
+      .attr("cx", (d) => x(d.mu)).attr("cy", (d) => y(d.m))
+      .attr("r", (d) => (d.miss ? 7 : 5.5))
+      .style("fill", (d) => (d.miss ? "var(--ink)" : d.m > 0 ? "var(--d-lean)" : "var(--r-lean)"))
+      .style("stroke", (d) => (d.miss ? "var(--surface)" : "none")).attr("stroke-width", 2);
+    const appear = (d) => 0.8 + (d.i / pts.length) * 1.6;
+
+
+    // ---- headline accuracy numbers
+    const stats = [
+      { v: V.accuracy * 100, f: (v) => `${v.toFixed(1)}%`, label: `of winners called correctly<div class="key"><i style="background:var(--ink)"></i>${V.n_miss} of ${V.n_races} missed</div>` },
+      { v: V.coverage80 * 100, f: (v) => `${v.toFixed(1)}%`, label: "of results fell inside the 80% ranges" },
+      { v: V.logloss, f: (v) => v.toFixed(3), label: `log loss, vs <b>${V.logloss_fundamentals.toFixed(3)}</b> for fundamentals alone (lower is better)` },
+    ];
+    const blocks = stats.map((st, i) => {
+      const b = place(el("div", "stat2"), 1000, 340 + i * 190);
+      const n = el("div", "v-num", null, b);
+      const l = el("div", "v-label", null, b); l.innerHTML = st.label;
+      return { b, n, st };
+    });
+
+    return {
+      render(t) {
+        head.render(t);
+        axis.attr("opacity", prog(t, 0.4, 0.6));
+        dots.attr("opacity", (d) => (d.miss ? 1 : 0.6) * prog(t, appear(d), 0.35));
+        blocks.forEach(({ b, n, st }, i) => {
+          const t0 = 2.6 + i * 0.7;
+          show(b, prog(t, t0, 0.6));
+          // log loss counts down from the fundamentals-only score; the others count up
+          const k = easeOut(clamp01((t - t0) / 1.2));
+          const v = i === 2 ? V.logloss_fundamentals + (st.v - V.logloss_fundamentals) * k : st.v * k;
+          n.textContent = st.f(v);
+        });
+      },
+    };
+  },
+});
+</script>
+</body>
+</html>
