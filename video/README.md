@@ -39,6 +39,7 @@ render.
 | `audio.py` | Synthesises the score and sound effects from `build/cues.json` (numpy only) |
 | `lib/server.mjs` | Static server for the repository, plus offline stand-ins for the GUI's CDN files |
 | `lib/inter.css` | Inter from npm (`@fontsource/inter`), served in place of Google Fonts |
+| `youtube/` | Upload kit: `thumbnail.png` (1280×720, from `thumbnail.html` via `node render.mjs --thumbnail`), plus the title, description with chapters, and tags in `youtube/README.md` |
 
 ## Re-render
 

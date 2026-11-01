@@ -14,6 +14,7 @@
 //   node render.mjs --assemble            assemble from build/*.mp4, then add the soundtrack
 //   node render.mjs --audio               rebuild only the soundtrack and mux it onto the existing picture
 //   node render.mjs --stills intro 0.5,4,9 [--out dir]   PNG stills of one section at those times (s)
+//   node render.mjs --thumbnail           youtube/thumbnail.png (1280x720) from youtube/thumbnail.html
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { once } from "node:events";
@@ -316,10 +317,30 @@ async function soundtrack(browser, origin) {
   return durs;
 }
 
+// ---------------------------------------------------------------- thumbnail
+/** YouTube thumbnail: rendered at 2x in an ordinary headless page, then downsampled to 1280x720. */
+async function thumbnail(origin) {
+  const browser = await chromium.launch();
+  try {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2, colorScheme: "dark" });
+    await routeOffline(ctx, origin);
+    const page = await ctx.newPage();
+    await page.goto(`${origin}/video/youtube/thumbnail.html`, { waitUntil: "load" });
+    await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
+    const big = join(BUILD, "thumbnail@2x.png"), out = join(VIDEO_DIR, "youtube", "thumbnail.png");
+    await page.screenshot({ path: big });
+    await run("ffmpeg", ["-y", "-loglevel", "error", "-i", big, "-vf", "scale=1280:720:flags=lanczos", out]);
+    console.log(`${out}  ${((await stat(out)).size / 1e3).toFixed(0)} kB`);
+  } finally {
+    await browser.close();
+  }
+}
+
 // ---------------------------------------------------------------- main
 async function main() {
   await mkdir(BUILD, { recursive: true });
   const { server, origin } = await startServer();
+  if (args.includes("--thumbnail")) { await thumbnail(origin); server.close(); return; }
   const browser = await chromium.launch({ args: DETERMINISTIC_ARGS });
   try {
     if (args.includes("--audio") || args.includes("--assemble")) {

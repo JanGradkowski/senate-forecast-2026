@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Thumbnail</title>
+  <link rel="stylesheet" href="/video/lib/inter.css">
+  <link rel="stylesheet" href="/gui/styles.css">
+  <script src="/video/node_modules/d3/dist/d3.min.js"></script>
+  <script src="/video/node_modules/topojson-client/dist/topojson-client.min.js"></script>
+  <style>
+    /* YouTube thumbnail, 1280x720: the GUI's tokens, palette and Inter; the map is the real forecast */
+    html, body { width: 1280px; height: 720px; margin: 0; background: var(--surface); overflow: hidden; }
+    #map { position: absolute; left: 0; top: 0; }
+    .copy { position: absolute; left: 60px; top: 64px; width: 560px; }
+    .kicker { font-size: 28px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+    .big { font-size: 268px; font-weight: 800; letter-spacing: -0.05em; line-height: .86; color: var(--d-likely); margin: 26px 0 0 -10px; }
+    .big small { font-size: 128px; letter-spacing: -0.02em; margin-left: 4px; }
+    .label { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; color: var(--ink); margin: 26px 0 0; }
+    .pill { display: inline-block; margin-top: 30px; padding: 10px 20px; border: 3px solid var(--ink-2); border-radius: 999px;
+            font-size: 28px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); }
+  </style>
+</head>
+<body>
+  <svg id="map" width="1280" height="720"></svg>
+  <div class="copy">
+    <p class="kicker" id="kicker"></p>
+    <div class="big" id="big"></div>
+    <p class="label">chance Democrats control the&nbsp;Senate</p>
+    <div class="pill" id="badge"></div>
+  </div>
+<script type="module">
+import { binOf, fill } from "/gui/js/data.js";
+
+const senate = await (await fetch("/gui/data/senate.json")).json();
+const us = await (await fetch("/video/node_modules/us-atlas/states-10m.json")).json();
+const states = topojson.feature(us, us.objects.states).features;
+const race = new Map(senate.races.map((r) => [r.state, r]));
+const projection = d3.geoAlbersUsa().fitExtent([[560, 70], [1250, 690]], { type: "FeatureCollection", features: states });
+const path = d3.geoPath(projection);
+const svg = d3.select("#map");
+svg.append("g").selectAll("path").data(states).join("path").attr("d", path)
+  .style("fill", (d) => fill(race.has(d.properties.name) ? binOf(race.get(d.properties.name).margin) : null))
+  .style("stroke", "var(--surface)").attr("stroke-width", 1.5);
+
+const p = senate.p_control_nr;
+document.getElementById("kicker").textContent = "2026 Senate forecast";
+document.getElementById("big").innerHTML = `${Math.round(p * 100)}<small>%</small>`;
+document.getElementById("badge").textContent = `${senate.n_draws.toLocaleString("en-US")} simulated elections`;
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>
