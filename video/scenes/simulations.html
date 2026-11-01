@@ -79,6 +79,14 @@ boot({
     const target = Math.round(S.p_control_nr * 100);
 
     return {
+      cues: [
+        { t: 0.6, type: "riser", dur: 2.4, gain: 0.8 },
+        { t: 3.05, type: "thud" },
+        { t: 3.9, type: "counter", dur: 1.2, n: target, pan: 0.5 },
+        { t: 5.1, type: "chime", notes: [86, 93], pan: 0.4 },
+        { t: 5.7, type: "pluck", step: 5, pan: -0.1, gain: 0.6 },
+        { t: 5.9, type: "pluck", step: 7, pan: -0.2, gain: 0.6 },
+      ],
       render(t) {
         head.render(t);
         show(count, prog(t, 0.4, 0.6));

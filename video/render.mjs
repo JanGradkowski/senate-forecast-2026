@@ -11,9 +11,11 @@
 // Usage (from video/):
 //   node render.mjs                       render every section, then assemble the MP4
 //   node render.mjs --only data,blend     re-render some sections (then assembles)
-//   node render.mjs --assemble            assemble from build/*.mp4 only
+//   node render.mjs --assemble            assemble from build/*.mp4, then add the soundtrack
+//   node render.mjs --audio               rebuild only the soundtrack and mux it onto the existing picture
 //   node render.mjs --stills intro 0.5,4,9 [--out dir]   PNG stills of one section at those times (s)
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { once } from "node:events";
 import { mkdir, readFile, writeFile, stat } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -27,6 +29,8 @@ const FPS = 30;
 const XFADE = 0.6; // seconds of cross-fade between sections (0.3 s out, 0.3 s in)
 const BUILD = join(VIDEO_DIR, "build");
 const OUTPUT = join(VIDEO_DIR, "forecast_2026.mp4");
+const SILENT = join(BUILD, "video.mp4"); // the assembled picture, before the soundtrack is muxed in
+const LUFS = -16; // integrated loudness of the soundtrack (true peak -1.5 dBTP)
 
 // GUI recording: R (replay the reveal), then Space (tour) 5.2 s later, as ?tour=auto does; the tour shows
 // a race every 4.5 s, so Escape after five stops returns to the full map, which holds until the end.
@@ -206,18 +210,26 @@ async function assemble() {
     "-y", "-loglevel", "error", ...parts, "-filter_complex", filters.join(";"), "-map", "[out]",
     "-c:v", "libx264", "-preset", "slow", "-tune", "animation", "-crf", crf, "-pix_fmt", "yuv420p", "-r", String(FPS),
     "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv",
-    "-movflags", "+faststart", "-an", OUTPUT,
+    "-movflags", "+faststart", "-an", SILENT,
   ], { stdio: "inherit" });
   const [code] = await once(ff, "exit");
   if (code) throw new Error(`ffmpeg assemble exited ${code}`);
+}
 
-  // section timestamps in the final cut (a section starts where its cross-fade in begins)
+/** Section start times on the final cut (a section starts where its cross-fade in begins). */
+function startsFrom(durs) {
   let t = 0;
-  const rows = TIMELINE.map((s, i) => { const r = { ...s, start: t, dur: durs[i] }; t += durs[i] - XFADE; return r; });
+  return durs.map((d) => { const s = t; t += d - XFADE; return s; });
+}
+
+async function report(durs) {
+  const starts = startsFrom(durs);
+  const rows = TIMELINE.map((s, i) => ({ ...s, start: starts[i], dur: durs[i] }));
+  const crf = opt("--crf") || "14";
   const total = await probeDuration(OUTPUT);
   const size = (await stat(OUTPUT)).size;
   const mmss = (x) => `${Math.floor(x / 60)}:${(x % 60).toFixed(1).padStart(4, "0")}`;
-  const lines = [`forecast_2026.mp4  ${total.toFixed(2)} s  ${(size / 1e6).toFixed(1)} MB  (crf ${crf})`, ""];
+  const lines = [`forecast_2026.mp4  ${total.toFixed(2)} s  ${(size / 1e6).toFixed(1)} MB  (video crf ${crf}, AAC 192k at ${LUFS} LUFS)`, ""];
   const partsSeen = new Map();
   rows.forEach((r, i) => {
     const endT = i === rows.length - 1 ? total : rows[i + 1].start + XFADE;
@@ -230,13 +242,90 @@ async function assemble() {
   console.log(lines.join("\n"));
 }
 
+// ---------------------------------------------------------------- soundtrack
+const run = (cmd, argv, opts = {}) => new Promise((ok, fail) => {
+  const p = spawn(cmd, argv, { stdio: ["ignore", "inherit", "pipe"], ...opts });
+  let err = ""; p.stderr?.on("data", (d) => (err += d));
+  p.on("exit", (code) => (code ? fail(new Error(`${cmd} exited ${code}\n${err.slice(-2000)}`)) : ok(err)));
+});
+
+/** GUI cues, from the GUI's own timing (map.js reveal, app.js count-up and tour) and the data it shows. */
+async function guiCues() {
+  const senate = JSON.parse(await readFile(join(VIDEO_DIR, "..", "gui", "data", "senate.json"), "utf8"));
+  const order = [...senate.races].sort((a, b) => Math.abs(b.margin) - Math.abs(a.margin)); // safest first, as map.reveal()
+  const n = order.length;
+  const total = (300 + n * 95 + 450 + 500) / 1000;                                       // map.reveal()'s duration
+  const countUp = Math.max(0, total - 2.4);                                                // app.js reveal()
+  const cues = order.map((r, i) => ({                                                      // a rising run as the states fill
+    t: (300 + i * 95) / 1000 + 0.06, type: "pluck", step: 2 + Math.round((i * 10) / (n - 1)),
+    pan: Math.sign(r.margin) * 0.45, gain: 0.55 + 0.45 * (i / (n - 1)),
+  }));
+  cues.push({ t: 0.5, type: "swell", dur: 1.4, f: 500, gain: 0.5 });                        // seat bar
+  cues.push({ t: countUp, type: "counter", dur: 2.4, ease: "cubicOut", n: Math.round(senate.p_control_nr * 100) - 50, pan: -0.2 });
+  cues.push({ t: total, type: "chime", notes: [86, 93], pan: -0.2 }, { t: total, type: "impact", gain: 0.45 });
+  for (let k = 0; k < GUI.stops; k++) {                                                   // the tour: zoom in, card in
+    const t = GUI.tourAt + k * GUI.stop;
+    cues.push({ t, type: "whoosh", dur: 0.9, f: [250, 1100], gain: 0.7 }, { t: t + 0.08, type: "tick", pitch: 1.1, pan: 0.5, gain: 0.8 });
+  }
+  cues.push({ t: GUI.escapeAt, type: "whoosh", dur: 0.9, f: [1100, 250], gain: 0.6 });     // and back out
+  return { cues, marks: { landing: total } };
+}
+
+/** Collect every cue on the final timeline, synthesise the soundtrack, normalise it and mux it onto the picture. */
+async function soundtrack(browser, origin) {
+  const t0 = Date.now();
+  const durs = [], cues = [], sections = {};
+  for (const s of TIMELINE) {
+    let scene;
+    if (s.gui) scene = { duration: GUI.duration, ...(await guiCues()) };
+    else {
+      const p = await openPage(browser, origin);
+      await load(p, `${origin}/video/scenes/${s.name}.html`, () => window.__ready === true);
+      scene = await p.page.evaluate(() => ({ duration: window.__scene.duration, cues: window.__scene.cues, marks: window.__scene.marks }));
+      await p.ctx.close();
+    }
+    durs.push(scene.duration);
+    const start = startsFrom(durs)[durs.length - 1]; // uses only the sections before this one
+    sections[s.name] = start;
+    for (const [k, v] of Object.entries(scene.marks)) sections[k] = start + v;
+    for (const c of scene.cues) cues.push({ ...c, t: start + c.t, section: s.name });
+  }
+  // a soft swish through each section change (none into the GUI: the card's riser leads in)
+  const starts = startsFrom(durs);
+  TIMELINE.forEach((s, i) => {
+    if (i === 0 || s.gui) return;
+    const partChange = s.part !== TIMELINE[i - 1].part;
+    cues.push({ t: starts[i] + XFADE / 2 - 0.35, type: "whoosh", dur: 0.7, f: [300, 1500], gain: partChange ? 0.45 : 0.28, section: "transition" });
+  });
+  const duration = durs.reduce((a, d) => a + d, 0) - XFADE * (durs.length - 1);
+  const cuesFile = join(BUILD, "cues.json"), wav = join(BUILD, "audio.wav");
+  await writeFile(cuesFile, JSON.stringify({ duration, fade_out: 2.5, sections, cues: cues.sort((a, b) => a.t - b.t) }, null, 1));
+  await run(process.env.PYTHON || "python3", [join(VIDEO_DIR, "audio.py"), cuesFile, wav], { stdio: ["ignore", "inherit", "inherit"] });
+
+  // the picture: build/video.mp4, or the video stream of an existing forecast_2026.mp4
+  if (!existsSync(SILENT)) await run("ffmpeg", ["-y", "-loglevel", "error", "-i", OUTPUT, "-map", "0:v", "-c", "copy", SILENT]);
+  // two-pass loudness normalisation (EBU R128), then AAC
+  const ln = `loudnorm=I=${LUFS}:TP=-1.5:LRA=11`;
+  const m = JSON.parse((await run("ffmpeg", ["-hide_banner", "-i", wav, "-af", `${ln}:print_format=json`, "-f", "null", "-"])).match(/\{[\s\S]*\}/)[0]);
+  const pass2 = `${ln}:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
+  await run("ffmpeg", [
+    "-y", "-loglevel", "error", "-i", SILENT, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+    "-af", pass2, "-ar", "48000", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", OUTPUT,
+  ]);
+  console.log(`soundtrack: ${cues.length} cues, mix measured ${m.input_i} LUFS -> ${LUFS} LUFS, ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+  return durs;
+}
+
 // ---------------------------------------------------------------- main
 async function main() {
   await mkdir(BUILD, { recursive: true });
-  if (args.includes("--assemble")) return assemble();
   const { server, origin } = await startServer();
   const browser = await chromium.launch({ args: DETERMINISTIC_ARGS });
   try {
+    if (args.includes("--audio") || args.includes("--assemble")) {
+      if (args.includes("--assemble")) await assemble();
+      return await report(await soundtrack(browser, origin));
+    }
     const stillsName = opt("--stills");
     if (stillsName) {
       const times = args[args.indexOf("--stills") + 2].split(",").map(Number);
@@ -257,11 +346,12 @@ async function main() {
       await enc.close();
       console.log(`${s.name.padEnd(14)} ${r.duration.toFixed(2)} s, ${r.frames} frames, ${((Date.now() - t0) / 1000).toFixed(0)} s to render`);
     }
+    await assemble();
+    await report(await soundtrack(browser, origin));
   } finally {
     await browser.close();
     server.close();
   }
-  if (!opt("--stills")) await assemble();
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -73,7 +73,18 @@ boot({
     const lblR = place(el("div", "seg-label"), BX + BW, BY + BH + 14, { transform: "translateX(-100%)" });
     lblR.innerHTML = `<b>${nu.r}</b> Rep not up`;
 
+    // sound: a breath under the hook, the title hit, then a west-to-east run of plucks as the races light up
+    const sweep = states.filter((d) => raceStates.has(d.properties.name)).map(order).sort((a, b) => a - b);
+    const cues = [
+      { t: 0.05, type: "swell", dur: 2.6, f: 500 },
+      { t: 3.35, type: "impact" },
+      ...sweep.map((o) => ({ t: 3.8 + 1.6 * o + 0.12, type: "pluck", step: 3 + Math.round(o * 9), pan: (o * 2 - 1) * 0.7, gain: 0.45 })),
+      { t: 4.6, type: "whoosh", dur: 1.1, f: [250, 900], gain: 0.5 },
+      { t: 5.6, type: "tick", gain: 0.8 },
+    ];
+
     return {
+      cues, marks: { title: 3.35 },
       render(t) {
         // hook in, then out
         const hin1 = prog(t, 0.15, 0.7), hin2 = prog(t, 0.4, 0.7), hout = prog(t, 2.9, 0.55);

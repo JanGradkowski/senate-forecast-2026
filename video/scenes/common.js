@@ -110,7 +110,9 @@ export async function boot({ duration, setup }) {
   await Promise.all([400, 500, 600, 700, 800].map((w) => document.fonts.load(`${w} 40px Inter`, "Aa0−σλ·–")));
   await document.fonts.ready;
   const scene = await setup(data);
-  window.__scene = { duration, render: (t) => scene.render(t) };
+  // cues: sounds for audio.py, in seconds from the scene start, declared next to the animation they belong
+  // to ({ t, type, ...params }); marks: named moments the score follows (e.g. the intro's title hit)
+  window.__scene = { duration, render: (t) => scene.render(t), cues: scene.cues || [], marks: scene.marks || {} };
   const q = new URLSearchParams(location.search);
   scene.render(q.has("t") ? Number(q.get("t")) : duration); // preview: ?t=seconds, else the final frame
   window.__ready = true;

@@ -71,6 +71,12 @@ boot({
     });
 
     return {
+      cues: panels.flatMap((p, i) => [
+        { t: p.start + 0.3, type: "swell", dur: 1.0, f: 450, pan: -0.2 },
+        { t: p.start + 0.9, type: "swell", dur: 0.9, f: 900, pan: 0.1 },
+        { t: p.start + 1.6, type: "converge", dur: 0.8, f: i === 0 ? 587 : 440 },
+        { t: p.start + 2.45, type: "pluck", step: i === 0 ? 7 : 5, pan: 0.5 },
+      ]),
       render(t) {
         head.render(t);
         for (const p of panels) {

@@ -73,6 +73,12 @@ boot({
     note.textContent = "A Huber robust regression: landslides can’t drag the line.";
 
     return {
+      cues: [
+        { t: 0.8, type: "rain", dur: 1.8, n: pts.length, pan: [-0.8, 0.2] },
+        { t: 2.8, type: "glide", dur: 0.85, f: [330, 990], pan: [-0.7, 0.2] },
+        ...[0, 1, 2].map((i) => ({ t: 3.3 + i * 0.3, type: "tick", pitch: 1 + 0.06 * i, pan: 0.4 })),
+        { t: 4.2, type: "pluck", step: 7, pan: 0.4 },
+      ],
       render(t) {
         head.render(t);
         axis.attr("opacity", prog(t, 0.4, 0.6));

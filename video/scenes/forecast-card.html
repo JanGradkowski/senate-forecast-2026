@@ -23,6 +23,10 @@ boot({
     const title = place(el("h1", "title", "The forecast"), 120, 420);
     const sub = place(el("p", "v-body", `All ${data.races.length} races, filled in from the safest to the closest`), 120, 572);
     return {
+      cues: [
+        { t: 0.2, type: "swell", dur: 1.2, f: 350, gain: 0.6 },
+        { t: 0.4, type: "riser", dur: 1.9 },
+      ],
       render(t) {
         show(kicker, prog(t, 0.15, 0.6));
         show(title, prog(t, 0.25, 0.7), 24);

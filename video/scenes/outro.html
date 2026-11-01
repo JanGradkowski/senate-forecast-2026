@@ -45,6 +45,12 @@ boot({
     const fade = el("div", "fade");
 
     return {
+      cues: [
+        { t: 0.3, type: "chime", notes: [77, 84, 89], pan: -0.2 },
+        { t: 0.3, type: "thud", gain: 0.6 },
+        { t: 0.65, type: "pluck", step: 8, pan: 0.2 },
+        { t: 1.6, type: "tick", gain: 0.7 },
+      ],
       render(t) {
         show(kicker, prog(t, 0.2, 0.6));
         show(a, prog(t, 0.3, 0.7), 24);

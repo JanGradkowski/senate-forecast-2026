@@ -57,6 +57,7 @@ boot({
       `<span style="display:inline-block;width:48px"></span><span class="v-swatch" style="background:var(--r-lean)"></span>Republican won`;
 
     return {
+      cues: [{ t: 0.8, type: "rain", dur: 2.0, n: h.n_races, pan: [-0.75, 0.75] }],
       render(t) {
         head.render(t);
         blocks.forEach(({ b, n, s }, i) => {

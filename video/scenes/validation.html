@@ -75,6 +75,10 @@ boot({
     });
 
     return {
+      cues: [
+        { t: 0.8, type: "rain", dur: 1.6, n: pts.length, pan: [-0.8, -0.1] },
+        ...[0, 1, 2].map((i) => ({ t: 2.6 + i * 0.7, type: "pluck", step: 5 + 2 * i, pan: 0.35 })),
+      ],
       render(t) {
         head.render(t);
         axis.attr("opacity", prog(t, 0.4, 0.6));

@@ -92,6 +92,14 @@ boot({
     const bar = d3.interpolateRgb(grid, ink);
 
     return {
+      cues: [
+        { t: 0.5, type: "rain", dur: 0.6, n: E.races.length, pan: [-0.3, -0.3] },
+        { t: 1.6, type: "whoosh", dur: 0.75, f: [250, 900], pan: [0, 0.75] },   // national swing toward D (right)
+        { t: 2.6, type: "whoosh", dur: 0.75, f: [250, 900], pan: [0.75, -0.75] }, // and toward R (left)
+        { t: 3.6, type: "whoosh", dur: 0.7, f: [200, 600], pan: [-0.6, 0], gain: 0.6 }, // regional
+        { t: 4.6, type: "rain", dur: 0.6, n: E.races.length, pan: [-0.6, 0.6] },    // race-level jitter
+        { t: 5.6, type: "whoosh", dur: 0.7, f: [600, 250], gain: 0.4 },              // back to the forecast
+      ],
       render(t) {
         head.render(t);
         axis.attr("opacity", prog(t, 0.4, 0.6));

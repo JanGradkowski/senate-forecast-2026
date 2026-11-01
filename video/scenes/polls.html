@@ -68,6 +68,13 @@ boot({
     note.textContent = "Larger samples also count more; partisan polls count half.";
 
     return {
+      cues: [
+        { t: 0.8, type: "glide", dur: 1.3, f: [990, 330], pan: [-0.7, 0.1] },
+        { t: 2.4, type: "tick", pan: 0.4 },
+        { t: 3.0, type: "tick", pitch: 1.1, pan: 0.4 },
+        { t: 3.1, type: "counter", dur: 1.2, n: tx.n_polls, pan: 0.35 },
+        { t: 3.9, type: "pluck", step: 8, pan: 0.35 },
+      ],
       render(t) {
         head.render(t);
         axis.attr("opacity", prog(t, 0.4, 0.6));
