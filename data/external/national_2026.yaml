@@ -1,0 +1,6 @@
+# Hand-entered national inputs for 2026. Update before each run.
+# Generic-ballot D margin (points). Sources on 2026-10-30:
+#   PollCheck average D+8.7 (27 Oct), The Hill/DDHQ D+8.2 (20 Oct).
+generic_ballot: 8.5
+pres_party: R          # party of the sitting president
+midterm: true

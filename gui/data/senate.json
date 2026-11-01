@@ -1,0 +1,1143 @@
+{
+ "chamber": "senate",
+ "as_of": "01 Nov 2026",
+ "majority": 51,
+ "not_up": {
+  "nr": 34,
+  "r": 31
+ },
+ "p_control_nr": 0.8,
+ "median_nr_seats": 52,
+ "seat_distribution": [
+  {
+   "seats": 34,
+   "p": 0.0
+  },
+  {
+   "seats": 35,
+   "p": 0.0
+  },
+  {
+   "seats": 38,
+   "p": 0.0
+  },
+  {
+   "seats": 39,
+   "p": 0.0
+  },
+  {
+   "seats": 40,
+   "p": 0.0
+  },
+  {
+   "seats": 41,
+   "p": 0.0001
+  },
+  {
+   "seats": 42,
+   "p": 0.0001
+  },
+  {
+   "seats": 43,
+   "p": 0.0005
+  },
+  {
+   "seats": 44,
+   "p": 0.0007
+  },
+  {
+   "seats": 45,
+   "p": 0.0022
+  },
+  {
+   "seats": 46,
+   "p": 0.0066
+  },
+  {
+   "seats": 47,
+   "p": 0.0171
+  },
+  {
+   "seats": 48,
+   "p": 0.0298
+  },
+  {
+   "seats": 49,
+   "p": 0.0521
+  },
+  {
+   "seats": 50,
+   "p": 0.091
+  },
+  {
+   "seats": 51,
+   "p": 0.1466
+  },
+  {
+   "seats": 52,
+   "p": 0.1846
+  },
+  {
+   "seats": 53,
+   "p": 0.1818
+  },
+  {
+   "seats": 54,
+   "p": 0.1414
+  },
+  {
+   "seats": 55,
+   "p": 0.0822
+  },
+  {
+   "seats": 56,
+   "p": 0.039
+  },
+  {
+   "seats": 57,
+   "p": 0.0157
+  },
+  {
+   "seats": 58,
+   "p": 0.0058
+  },
+  {
+   "seats": 59,
+   "p": 0.0018
+  },
+  {
+   "seats": 60,
+   "p": 0.0006
+  },
+  {
+   "seats": 61,
+   "p": 0.0002
+  },
+  {
+   "seats": 62,
+   "p": 0.0001
+  },
+  {
+   "seats": 63,
+   "p": 0.0001
+  }
+ ],
+ "n_draws": 50000,
+ "races": [
+  {
+   "race_id": "AL",
+   "state": "Alabama",
+   "postal": "AL",
+   "special": false,
+   "nr": {
+    "name": "Everett Wess",
+    "party": "D"
+   },
+   "r": {
+    "name": "Barry Moore",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": -15.27,
+   "lo80": -33.98,
+   "hi80": 3.7,
+   "p_nr": 0.023,
+   "p_runoff": 0.0,
+   "p_consensus": 0.015,
+   "p_market": null,
+   "polls": {
+    "n": 1,
+    "avg": -18.99
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Tuberville retiring"
+  },
+  {
+   "race_id": "AK",
+   "state": "Alaska",
+   "postal": "AK",
+   "special": false,
+   "nr": {
+    "name": "Mary Peltola",
+    "party": "D"
+   },
+   "r": {
+    "name": "Dan S. Sullivan",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -0.24,
+   "lo80": -12.13,
+   "hi80": 11.54,
+   "p_nr": 0.476,
+   "p_runoff": 0.0,
+   "p_consensus": 0.599,
+   "p_market": null,
+   "polls": {
+    "n": 15,
+    "avg": 2.89
+   },
+   "rcv": true,
+   "runoff": false,
+   "notes": "Top-4 + RCV; a second Republican named Dan J. Sullivan is also on the ballot; settles ~2-3 weeks late"
+  },
+  {
+   "race_id": "AR",
+   "state": "Arkansas",
+   "postal": "AR",
+   "special": false,
+   "nr": {
+    "name": "Hallie Shoffner",
+    "party": "D"
+   },
+   "r": {
+    "name": "Tom Cotton",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -17.02,
+   "lo80": -28.86,
+   "hi80": -5.34,
+   "p_nr": 0.003,
+   "p_runoff": 0.0,
+   "p_consensus": 0.018,
+   "p_market": null,
+   "polls": {
+    "n": 4,
+    "avg": -9.9
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "CO",
+   "state": "Colorado",
+   "postal": "CO",
+   "special": false,
+   "nr": {
+    "name": "John Hickenlooper",
+    "party": "D"
+   },
+   "r": {
+    "name": "Mark Baisley",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 29.14,
+   "lo80": 10.47,
+   "hi80": 47.87,
+   "p_nr": 0.998,
+   "p_runoff": 0.0,
+   "p_consensus": 0.985,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "DE",
+   "state": "Delaware",
+   "postal": "DE",
+   "special": false,
+   "nr": {
+    "name": "Chris Coons",
+    "party": "D"
+   },
+   "r": {
+    "name": "Michael Katz",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 32.22,
+   "lo80": 13.41,
+   "hi80": 51.05,
+   "p_nr": 0.999,
+   "p_runoff": 0.0,
+   "p_consensus": 0.985,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "FL",
+   "state": "Florida",
+   "postal": "FL",
+   "special": true,
+   "nr": {
+    "name": "Angie Nixon",
+    "party": "D"
+   },
+   "r": {
+    "name": "Ashley Moody",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": -5.85,
+   "lo80": -12.33,
+   "hi80": 0.56,
+   "p_nr": 0.038,
+   "p_runoff": 0.0,
+   "p_consensus": 0.093,
+   "p_market": null,
+   "polls": {
+    "n": 12,
+    "avg": -6.3
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Special; Moody appointed 2025 (coded 0 like historical appointees)"
+  },
+  {
+   "race_id": "GA",
+   "state": "Georgia",
+   "postal": "GA",
+   "special": false,
+   "nr": {
+    "name": "Jon Ossoff",
+    "party": "D"
+   },
+   "r": {
+    "name": "Mike Collins",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 10.99,
+   "lo80": 1.44,
+   "hi80": 20.52,
+   "p_nr": 0.989,
+   "p_runoff": 0.019,
+   "p_consensus": 0.939,
+   "p_market": null,
+   "polls": {
+    "n": 8,
+    "avg": 8.66
+   },
+   "rcv": false,
+   "runoff": true,
+   "notes": "Runoff on 1 Dec if nobody passes 50% (verify date)"
+  },
+  {
+   "race_id": "ID",
+   "state": "Idaho",
+   "postal": "ID",
+   "special": false,
+   "nr": {
+    "name": "Todd Achilles",
+    "party": "I"
+   },
+   "r": {
+    "name": "Jim Risch",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -33.34,
+   "lo80": -52.16,
+   "hi80": -14.3,
+   "p_nr": 0.001,
+   "p_runoff": 0.0,
+   "p_consensus": 0.015,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "No Democrat; independent Achilles is the main non-R (check which poll column carries him)"
+  },
+  {
+   "race_id": "IL",
+   "state": "Illinois",
+   "postal": "IL",
+   "special": false,
+   "nr": {
+    "name": "Juliana Stratton",
+    "party": "D"
+   },
+   "r": {
+    "name": "Don Tracy",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": 16.8,
+   "lo80": 6.09,
+   "hi80": 27.39,
+   "p_nr": 0.998,
+   "p_runoff": 0.0,
+   "p_consensus": 0.985,
+   "p_market": null,
+   "polls": {
+    "n": 2,
+    "avg": 16.93
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Durbin retiring"
+  },
+  {
+   "race_id": "IA",
+   "state": "Iowa",
+   "postal": "IA",
+   "special": false,
+   "nr": {
+    "name": "Josh Turek",
+    "party": "D"
+   },
+   "r": {
+    "name": "Ashley Hinson",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": 0.05,
+   "lo80": -6.42,
+   "hi80": 6.51,
+   "p_nr": 0.506,
+   "p_runoff": 0.0,
+   "p_consensus": 0.475,
+   "p_market": null,
+   "polls": {
+    "n": 17,
+    "avg": 0.26
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Ernst retiring"
+  },
+  {
+   "race_id": "KS",
+   "state": "Kansas",
+   "postal": "KS",
+   "special": false,
+   "nr": {
+    "name": "Adam Hamilton",
+    "party": "D"
+   },
+   "r": {
+    "name": "Roger Marshall",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -2.55,
+   "lo80": -12.34,
+   "hi80": 7.34,
+   "p_nr": 0.26,
+   "p_runoff": 0.0,
+   "p_consensus": 0.5,
+   "p_market": null,
+   "polls": {
+    "n": 4,
+    "avg": 2.68
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "KY",
+   "state": "Kentucky",
+   "postal": "KY",
+   "special": false,
+   "nr": {
+    "name": "Charles Booker",
+    "party": "D"
+   },
+   "r": {
+    "name": "Andy Barr",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": -15.46,
+   "lo80": -34.28,
+   "hi80": 3.18,
+   "p_nr": 0.021,
+   "p_runoff": 0.0,
+   "p_consensus": 0.015,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "McConnell retiring"
+  },
+  {
+   "race_id": "LA",
+   "state": "Louisiana",
+   "postal": "LA",
+   "special": false,
+   "nr": {
+    "name": "Jamie Davis",
+    "party": "D"
+   },
+   "r": {
+    "name": "Julia Letlow",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": -9.18,
+   "lo80": -28.02,
+   "hi80": 9.52,
+   "p_nr": 0.09,
+   "p_runoff": 0.0,
+   "p_consensus": 0.043,
+   "p_market": null,
+   "polls": {
+    "n": 1,
+    "avg": -4.96
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "First closed party primaries; Cassidy lost renomination (verify November format)"
+  },
+  {
+   "race_id": "ME",
+   "state": "Maine",
+   "postal": "ME",
+   "special": false,
+   "nr": {
+    "name": "Troy Jackson",
+    "party": "D"
+   },
+   "r": {
+    "name": "Susan Collins",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": 1.94,
+   "lo80": -4.86,
+   "hi80": 8.64,
+   "p_nr": 0.73,
+   "p_runoff": 0.0,
+   "p_consensus": 0.622,
+   "p_market": null,
+   "polls": {
+    "n": 17,
+    "avg": 2.21
+   },
+   "rcv": true,
+   "runoff": false,
+   "notes": "RCV; Democratic nominee is Troy Jackson (filter polls to Collins vs Jackson); settles late"
+  },
+  {
+   "race_id": "MA",
+   "state": "Massachusetts",
+   "postal": "MA",
+   "special": false,
+   "nr": {
+    "name": "Ed Markey",
+    "party": "D"
+   },
+   "r": {
+    "name": "John Deaton",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 33.77,
+   "lo80": 25.63,
+   "hi80": 41.88,
+   "p_nr": 1.0,
+   "p_runoff": 0.0,
+   "p_consensus": 0.985,
+   "p_market": null,
+   "polls": {
+    "n": 8,
+    "avg": 32.4
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "MI",
+   "state": "Michigan",
+   "postal": "MI",
+   "special": false,
+   "nr": {
+    "name": "Abdul El-Sayed",
+    "party": "D"
+   },
+   "r": {
+    "name": "Mike Rogers",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": 4.69,
+   "lo80": -2.1,
+   "hi80": 11.52,
+   "p_nr": 0.922,
+   "p_runoff": 0.0,
+   "p_consensus": 0.698,
+   "p_market": null,
+   "polls": {
+    "n": 24,
+    "avg": 4.47
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Peters retiring"
+  },
+  {
+   "race_id": "MN",
+   "state": "Minnesota",
+   "postal": "MN",
+   "special": false,
+   "nr": {
+    "name": "Peggy Flanagan",
+    "party": "D"
+   },
+   "r": {
+    "name": "Michele Tafoya",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": 9.67,
+   "lo80": 1.02,
+   "hi80": 18.27,
+   "p_nr": 0.987,
+   "p_runoff": 0.0,
+   "p_consensus": 0.858,
+   "p_market": null,
+   "polls": {
+    "n": 7,
+    "avg": 9.42
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Smith retiring"
+  },
+  {
+   "race_id": "MS",
+   "state": "Mississippi",
+   "postal": "MS",
+   "special": false,
+   "nr": {
+    "name": "Scott Colom",
+    "party": "D"
+   },
+   "r": {
+    "name": "Cindy Hyde-Smith",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -22.43,
+   "lo80": -41.3,
+   "hi80": -3.75,
+   "p_nr": 0.005,
+   "p_runoff": 0.0,
+   "p_consensus": 0.061,
+   "p_market": null,
+   "polls": {
+    "n": 1,
+    "avg": -3.29
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "MT",
+   "state": "Montana",
+   "postal": "MT",
+   "special": false,
+   "nr": {
+    "name": "Seth Bodnar",
+    "party": "I"
+   },
+   "r": {
+    "name": "Kurt Alme",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": -5.4,
+   "lo80": -15.49,
+   "hi80": 4.64,
+   "p_nr": 0.096,
+   "p_runoff": 0.0,
+   "p_consensus": 0.043,
+   "p_market": null,
+   "polls": {
+    "n": 5,
+    "avg": -4.57
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Three-way race (I Bodnar ~28% / D Bankhead ~19% in polls); two-candidate model does not apply; no trade"
+  },
+  {
+   "race_id": "NE",
+   "state": "Nebraska",
+   "postal": "NE",
+   "special": false,
+   "nr": {
+    "name": "Dan Osborn",
+    "party": "I"
+   },
+   "r": {
+    "name": "Pete Ricketts",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -1.25,
+   "lo80": -14.12,
+   "hi80": 11.53,
+   "p_nr": 0.394,
+   "p_runoff": 0.0,
+   "p_consensus": 0.208,
+   "p_market": null,
+   "polls": {
+    "n": 4,
+    "avg": 3.79
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "No Democrat; check how party-worded and control contracts treat Osborn"
+  },
+  {
+   "race_id": "NH",
+   "state": "New Hampshire",
+   "postal": "NH",
+   "special": false,
+   "nr": {
+    "name": "Chris Pappas",
+    "party": "D"
+   },
+   "r": {
+    "name": "John E. Sununu",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": 7.97,
+   "lo80": 0.57,
+   "hi80": 15.37,
+   "p_nr": 0.983,
+   "p_runoff": 0.0,
+   "p_consensus": 0.837,
+   "p_market": null,
+   "polls": {
+    "n": 13,
+    "avg": 7.68
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Shaheen retiring"
+  },
+  {
+   "race_id": "NJ",
+   "state": "New Jersey",
+   "postal": "NJ",
+   "special": false,
+   "nr": {
+    "name": "Cory Booker",
+    "party": "D"
+   },
+   "r": {
+    "name": "Justin Murphy",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 26.6,
+   "lo80": 7.85,
+   "hi80": 45.32,
+   "p_nr": 0.997,
+   "p_runoff": 0.0,
+   "p_consensus": 0.985,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "NM",
+   "state": "New Mexico",
+   "postal": "NM",
+   "special": false,
+   "nr": {
+    "name": "Ben Ray Lujan",
+    "party": "D"
+   },
+   "r": {
+    "name": "Larry Marker",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 21.95,
+   "lo80": 10.63,
+   "hi80": 33.25,
+   "p_nr": 0.999,
+   "p_runoff": 0.0,
+   "p_consensus": 0.982,
+   "p_market": null,
+   "polls": {
+    "n": 2,
+    "avg": 20.0
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "NC",
+   "state": "North Carolina",
+   "postal": "NC",
+   "special": false,
+   "nr": {
+    "name": "Roy Cooper",
+    "party": "D"
+   },
+   "r": {
+    "name": "Michael Whatley",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": 12.57,
+   "lo80": 5.37,
+   "hi80": 19.71,
+   "p_nr": 0.998,
+   "p_runoff": 0.0,
+   "p_consensus": 0.921,
+   "p_market": null,
+   "polls": {
+    "n": 21,
+    "avg": 13.58
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Tillis retiring"
+  },
+  {
+   "race_id": "OH",
+   "state": "Ohio",
+   "postal": "OH",
+   "special": true,
+   "nr": {
+    "name": "Sherrod Brown",
+    "party": "D"
+   },
+   "r": {
+    "name": "Jon Husted",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": 3.68,
+   "lo80": -2.76,
+   "hi80": 10.06,
+   "p_nr": 0.879,
+   "p_runoff": 0.0,
+   "p_consensus": 0.607,
+   "p_market": null,
+   "polls": {
+    "n": 19,
+    "avg": 4.11
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Special; Husted appointed 2025 (coded 0 like historical appointees)"
+  },
+  {
+   "race_id": "OK",
+   "state": "Oklahoma",
+   "postal": "OK",
+   "special": false,
+   "nr": {
+    "name": "N'Kiyla Jasmine Thomas",
+    "party": "D"
+   },
+   "r": {
+    "name": "Kevin Hern",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": -19.07,
+   "lo80": -38.04,
+   "hi80": -0.31,
+   "p_nr": 0.01,
+   "p_runoff": 0.0,
+   "p_consensus": 0.015,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Incumbent Alan Armstrong not running"
+  },
+  {
+   "race_id": "OR",
+   "state": "Oregon",
+   "postal": "OR",
+   "special": false,
+   "nr": {
+    "name": "Jeff Merkley",
+    "party": "D"
+   },
+   "r": {
+    "name": "David Brock Smith",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 31.67,
+   "lo80": 13.04,
+   "hi80": 50.56,
+   "p_nr": 0.999,
+   "p_runoff": 0.0,
+   "p_consensus": 0.985,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "RI",
+   "state": "Rhode Island",
+   "postal": "RI",
+   "special": false,
+   "nr": {
+    "name": "Jack Reed",
+    "party": "D"
+   },
+   "r": {
+    "name": "Raymond McKay",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 32.71,
+   "lo80": 23.5,
+   "hi80": 41.79,
+   "p_nr": 1.0,
+   "p_runoff": 0.0,
+   "p_consensus": 0.985,
+   "p_market": null,
+   "polls": {
+    "n": 5,
+    "avg": 32.85
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "SC",
+   "state": "South Carolina",
+   "postal": "SC",
+   "special": false,
+   "nr": {
+    "name": "Annie Andrews",
+    "party": "D"
+   },
+   "r": {
+    "name": "Darline Graham",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": -2.97,
+   "lo80": -12.66,
+   "hi80": 6.8,
+   "p_nr": 0.227,
+   "p_runoff": 0.0,
+   "p_consensus": 0.302,
+   "p_market": null,
+   "polls": {
+    "n": 3,
+    "avg": -2.19
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Incumbent Darline Graham appears to be an appointee (verify)"
+  },
+  {
+   "race_id": "SD",
+   "state": "South Dakota",
+   "postal": "SD",
+   "special": false,
+   "nr": {
+    "name": "Brian Bengs",
+    "party": "I"
+   },
+   "r": {
+    "name": "Mike Rounds",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -16.94,
+   "lo80": -26.83,
+   "hi80": -7.1,
+   "p_nr": 0.002,
+   "p_runoff": 0.0,
+   "p_consensus": 0.018,
+   "p_market": null,
+   "polls": {
+    "n": 3,
+    "avg": -13.28
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "No Democrat; independent Bengs is the main non-R"
+  },
+  {
+   "race_id": "TN",
+   "state": "Tennessee",
+   "postal": "TN",
+   "special": false,
+   "nr": {
+    "name": "Marquita Bradshaw",
+    "party": "D"
+   },
+   "r": {
+    "name": "Bill Hagerty",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -27.65,
+   "lo80": -46.44,
+   "hi80": -8.77,
+   "p_nr": 0.002,
+   "p_runoff": 0.0,
+   "p_consensus": 0.015,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "TX",
+   "state": "Texas",
+   "postal": "TX",
+   "special": false,
+   "nr": {
+    "name": "James Talarico",
+    "party": "D"
+   },
+   "r": {
+    "name": "Ken Paxton",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": 3.04,
+   "lo80": -2.43,
+   "hi80": 8.46,
+   "p_nr": 0.854,
+   "p_runoff": 0.0,
+   "p_consensus": 0.583,
+   "p_market": null,
+   "polls": {
+    "n": 49,
+    "avg": 3.31
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Cornyn not on the ballot"
+  },
+  {
+   "race_id": "VA",
+   "state": "Virginia",
+   "postal": "VA",
+   "special": false,
+   "nr": {
+    "name": "Mark Warner",
+    "party": "D"
+   },
+   "r": {
+    "name": "Bert Mizusawa",
+    "party": "R"
+   },
+   "incumbent": "nr",
+   "margin": 25.43,
+   "lo80": 6.65,
+   "hi80": 44.17,
+   "p_nr": 0.997,
+   "p_runoff": 0.0,
+   "p_consensus": 0.985,
+   "p_market": null,
+   "polls": {
+    "n": 1,
+    "avg": 30.94
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "WV",
+   "state": "West Virginia",
+   "postal": "WV",
+   "special": false,
+   "nr": {
+    "name": "Rachel Fetty Anderson",
+    "party": "D"
+   },
+   "r": {
+    "name": "Shelley Moore Capito",
+    "party": "R"
+   },
+   "incumbent": "r",
+   "margin": -37.72,
+   "lo80": -56.54,
+   "hi80": -18.78,
+   "p_nr": 0.001,
+   "p_runoff": 0.0,
+   "p_consensus": 0.015,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": ""
+  },
+  {
+   "race_id": "WY",
+   "state": "Wyoming",
+   "postal": "WY",
+   "special": false,
+   "nr": {
+    "name": "James W. Byrd",
+    "party": "D"
+   },
+   "r": {
+    "name": "Harriet Hageman",
+    "party": "R"
+   },
+   "incumbent": null,
+   "margin": -27.92,
+   "lo80": -46.79,
+   "hi80": -9.04,
+   "p_nr": 0.002,
+   "p_runoff": 0.0,
+   "p_consensus": 0.015,
+   "p_market": null,
+   "polls": {
+    "n": 0,
+    "avg": null
+   },
+   "rcv": false,
+   "runoff": false,
+   "notes": "Lummis retiring"
+  }
+ ]
+}

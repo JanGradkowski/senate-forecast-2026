@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2026 Senate Forecast</title>
+  <script>document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") === "light" ? "light" : "dark";</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+</head>
+<body>
+  <div class="viewport">
+    <main class="stage" id="stage" aria-label="2026 Senate forecast">
+
+      <header class="top">
+        <div class="titles">
+          <p class="kicker">2026 U.S. midterm elections</p>
+          <h1 id="title">Senate forecast</h1>
+          <p class="subtitle" id="subtitle"></p>
+        </div>
+        <div class="hero" id="hero">
+          <div class="hero-value"><span id="hero-num">80</span><span class="hero-pct">%</span></div>
+          <div class="hero-text">
+            <p class="hero-label" id="hero-label">chance Democrats control the Senate</p>
+            <p class="hero-sub" id="hero-sub"></p>
+          </div>
+        </div>
+        <div class="seats">
+          <div class="seats-head">
+            <span class="seats-side nr"><b id="seats-nr">52</b> Democrats + independents</span>
+            <span class="seats-side r"><b id="seats-r">48</b> Republicans</span>
+          </div>
+          <svg id="seatbar" width="520" height="60" role="img" aria-label="Projected seats"></svg>
+          <p class="seats-note" id="seats-note"></p>
+        </div>
+      </header>
+
+      <nav class="controls" id="controls" aria-label="View controls">
+        <button class="ctl" data-action="tour" title="Tour the closest races (Space)">▶ Tour</button>
+        <button class="ctl" data-action="reveal" title="Replay the reveal (R)">↻ Reveal</button>
+        <button class="ctl" data-action="table" title="Table view">▦ Table</button>
+        <button class="ctl" data-action="theme" title="Light / dark (T)">◐ Theme</button>
+        <button class="ctl" data-action="present" title="Presentation mode (P)">⛶ Present</button>
+      </nav>
+
+      <section class="view view-senate" id="view-senate">
+        <div class="map-wrap">
+          <svg id="map" width="1240" height="640" role="group" aria-label="Map of 2026 Senate races, colored by projected margin. Each race state is a button."></svg>
+        </div>
+        <aside class="panel" id="panel">
+          <div class="panel-list" id="panel-list">
+            <h2 class="panel-title">Closest races <span class="panel-hint">projected margin</span></h2>
+            <svg id="closest" width="540" height="560" role="group" aria-label="Closest races by projected margin"></svg>
+          </div>
+          <div class="card" id="card" hidden></div>
+        </aside>
+        <footer class="bottom">
+          <div class="dist">
+            <h2 class="panel-title">Senate seats across simulations <span class="panel-hint">Democrats + independents</span></h2>
+            <svg id="hist" width="760" height="160" role="img" aria-label="Distribution of Democratic and independent seats"></svg>
+          </div>
+          <div class="legend" id="legend" aria-label="Legend"></div>
+        </footer>
+      </section>
+
+      <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+      <div class="table-view" id="table-view" hidden role="dialog" aria-label="All races as a table">
+        <div class="table-inner">
+          <div class="table-head"><h2>All 2026 Senate races</h2><button class="ctl" data-action="table">Close</button></div>
+          <div class="table-scroll"><table id="race-table"></table></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

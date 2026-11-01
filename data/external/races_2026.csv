@@ -1,0 +1,36 @@
+race_id,state,special,cand_nr,nr_party,cand_r,incumbent,appointed_incumbent,rcv,runoff_rule,region,poll_col,trade,notes
+AL,Alabama,False,Everett Wess,D,Barry Moore,0,False,False,plurality,South,Dem,True,Tuberville retiring
+AK,Alaska,False,Mary Peltola,D,Dan S. Sullivan,-1,False,True,plurality,West,Dem,True,Top-4 + RCV; a second Republican named Dan J. Sullivan is also on the ballot; settles ~2-3 weeks late
+AR,Arkansas,False,Hallie Shoffner,D,Tom Cotton,-1,False,False,plurality,South,Dem,True,
+CO,Colorado,False,John Hickenlooper,D,Mark Baisley,1,False,False,plurality,West,Dem,True,
+DE,Delaware,False,Chris Coons,D,Michael Katz,1,False,False,plurality,South,Dem,True,
+FL,Florida,True,Angie Nixon,D,Ashley Moody,0,True,False,plurality,South,Dem,True,Special; Moody appointed 2025 (coded 0 like historical appointees)
+GA,Georgia,False,Jon Ossoff,D,Mike Collins,1,False,False,majority,South,Dem,True,Runoff on 1 Dec if nobody passes 50% (verify date)
+ID,Idaho,False,Todd Achilles,I,Jim Risch,-1,False,False,plurality,West,Dem,True,No Democrat; independent Achilles is the main non-R (check which poll column carries him)
+IL,Illinois,False,Juliana Stratton,D,Don Tracy,0,False,False,plurality,Midwest,Dem,True,Durbin retiring
+IA,Iowa,False,Josh Turek,D,Ashley Hinson,0,False,False,plurality,Midwest,Dem,True,Ernst retiring
+KS,Kansas,False,Adam Hamilton,D,Roger Marshall,-1,False,False,plurality,Midwest,Dem,True,
+KY,Kentucky,False,Charles Booker,D,Andy Barr,0,False,False,plurality,South,Dem,True,McConnell retiring
+LA,Louisiana,False,Jamie Davis,D,Julia Letlow,0,False,False,plurality,South,Dem,True,First closed party primaries; Cassidy lost renomination (verify November format)
+ME,Maine,False,Troy Jackson,D,Susan Collins,-1,False,True,plurality,Northeast,Dem,True,RCV; Democratic nominee is Troy Jackson (filter polls to Collins vs Jackson); settles late
+MA,Massachusetts,False,Ed Markey,D,John Deaton,1,False,False,plurality,Northeast,Dem,True,
+MI,Michigan,False,Abdul El-Sayed,D,Mike Rogers,0,False,False,plurality,Midwest,Dem,True,Peters retiring
+MN,Minnesota,False,Peggy Flanagan,D,Michele Tafoya,0,False,False,plurality,Midwest,Dem,True,Smith retiring
+MS,Mississippi,False,Scott Colom,D,Cindy Hyde-Smith,-1,False,False,plurality,South,Dem,True,
+MT,Montana,False,Seth Bodnar,I,Kurt Alme,0,False,False,plurality,West,Ind,False,Three-way race (I Bodnar ~28% / D Bankhead ~19% in polls); two-candidate model does not apply; no trade
+NE,Nebraska,False,Dan Osborn,I,Pete Ricketts,-1,False,False,plurality,Midwest,Ind,True,No Democrat; check how party-worded and control contracts treat Osborn
+NH,New Hampshire,False,Chris Pappas,D,John E. Sununu,0,False,False,plurality,Northeast,Dem,True,Shaheen retiring
+NJ,New Jersey,False,Cory Booker,D,Justin Murphy,1,False,False,plurality,Northeast,Dem,True,
+NM,New Mexico,False,Ben Ray Lujan,D,Larry Marker,1,False,False,plurality,West,Dem,True,
+NC,North Carolina,False,Roy Cooper,D,Michael Whatley,0,False,False,plurality,South,Dem,True,Tillis retiring
+OH,Ohio,True,Sherrod Brown,D,Jon Husted,0,True,False,plurality,Midwest,Dem,True,Special; Husted appointed 2025 (coded 0 like historical appointees)
+OK,Oklahoma,False,N'Kiyla Jasmine Thomas,D,Kevin Hern,0,False,False,plurality,South,Dem,True,Incumbent Alan Armstrong not running
+OR,Oregon,False,Jeff Merkley,D,David Brock Smith,1,False,False,plurality,West,Dem,True,
+RI,Rhode Island,False,Jack Reed,D,Raymond McKay,1,False,False,plurality,Northeast,Dem,True,
+SC,South Carolina,False,Annie Andrews,D,Darline Graham,0,True,False,plurality,South,Dem,True,Incumbent Darline Graham appears to be an appointee (verify)
+SD,South Dakota,False,Brian Bengs,I,Mike Rounds,-1,False,False,plurality,Midwest,Ind,True,No Democrat; independent Bengs is the main non-R
+TN,Tennessee,False,Marquita Bradshaw,D,Bill Hagerty,-1,False,False,plurality,South,Dem,True,
+TX,Texas,False,James Talarico,D,Ken Paxton,0,False,False,plurality,South,Dem,True,Cornyn not on the ballot
+VA,Virginia,False,Mark Warner,D,Bert Mizusawa,1,False,False,plurality,South,Dem,True,
+WV,West Virginia,False,Rachel Fetty Anderson,D,Shelley Moore Capito,-1,False,False,plurality,South,Dem,True,
+WY,Wyoming,False,James W. Byrd,D,Harriet Hageman,0,False,False,plurality,West,Dem,True,Lummis retiring

@@ -1,0 +1,32 @@
+# Model 1 settings. Every parameter fit from data is re-fit inside each validation fold;
+# these are the fixed choices around it.
+train_cycles: [1998, 2000, 2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016, 2018, 2020, 2022, 2024]
+features: [pres_lean, generic_ballot, midterm_penalty, incumbent]
+
+polls:
+  cutoff_days: 5          # use polls ending by election day - 5
+  tau_days: 14            # recency half-life scale: weight exp(-age / tau)
+  default_n: 600          # sample size when a poll does not report one
+  partisan_weight: 0.5    # weight multiplier for partisan-sponsored polls
+  house_ridge: 5.0        # shrinkage of pollster house effects toward 0 (tuned 31 Oct, was 20;
+                          # gain within noise, see reports/model1_tuning.md)
+
+errors:
+  sigma_nat_floor: 2.5    # floor on the shared national error (points); data say ~2.2-2.5
+  sigma_reg_floor: 1.0    # data say ~0, but regional polling misses happen (2020 Midwest)
+  t_df: 5                 # Student-t tails for every shock
+  calibrate: logloss      # c minimises out-of-sample win/lose log loss (tuned 31 Oct: nested
+                          # LOYO log loss 0.1321 vs 0.1425 with coverage calibration)
+  interval_calibrate: coverage  # 80% margin ranges use a second scale calibrated to 80% coverage
+                                # (the log-loss scale alone covered only 56% out of sample)
+  target_coverage: 0.80
+  extra_sd: {AK: 1.5, NE: 1.5}   # 2026 multipliers on race-level error
+
+simulation:
+  n_draws: 50000
+  seed: 2026
+  ga_third_party_mean: 0.02     # Georgia third-party share (runoff rule)
+  ga_runoff_sd: 3.0
+  ind_caucus_d: 0.5             # chance a winning independent caucuses with Democrats
+  holdover_d: 34                # D+I seats not up in 2026 (verify)
+  holdover_r: 31
