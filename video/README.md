@@ -92,8 +92,11 @@ exactly 1/30 s per frame. Frames come back as PNG screenshots from
   draws and captures it.
 - **The GUI** keeps its own clocks: D3 transitions, `setTimeout` and CSS. The recorder pauses Chromium's
   virtual time (`Emulation.setVirtualTimePolicy`) and advances it 1/30 s per frame, in step with the frame
-  timestamps. The GUI's own timing therefore plays out exactly as in a browser, and every render is
-  identical.
+  timestamps. The GUI's own timing therefore plays out exactly as in a browser.
+
+Timing is fully deterministic. Pixels are almost so: a second full render matched the first to an average
+PSNR of 62.8 dB (worst frame 42.8 dB). The only differences are invisible sub-pixel ones in the scatter
+dots and the GUI zooms. The soundtrack is bit-identical between renders.
 
 The GUI is loaded unchanged from `gui/` with `?present&reveal=0`. The recorder then uses the GUI's
 keyboard controls:
