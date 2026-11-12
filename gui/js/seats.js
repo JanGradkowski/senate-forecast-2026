@@ -1,16 +1,22 @@
 // Header figures (hero number, seat bar) and the bottom strip (seat histogram, legend).
 import { LEVELS, fill, reduceMotion } from "./data.js";
 
-export function renderHero(senate) {
+/** The headline probability; in the results view, the same forecast plus what happened. */
+export function renderHero(senate, results = null) {
   const p = senate.p_control_nr;
   const nr = p >= 0.5;
   const num = document.getElementById("hero-num");
   num.textContent = Math.round((nr ? p : 1 - p) * 100);
   num.parentElement.style.color = nr ? "var(--d-likely)" : "var(--r-likely)";
   document.getElementById("hero-label").textContent =
-    `chance ${nr ? "Democrats" : "Republicans"} control the Senate`;
-  document.getElementById("hero-sub").textContent =
-    `${senate.n_draws.toLocaleString("en-US")} simulated elections · ${nr ? "Republicans" : "Democrats"} ${Math.round((nr ? 1 - p : p) * 100)}%`;
+    results ? `forecast chance of ${nr ? "Democratic" : "Republican"} control` : `chance ${nr ? "Democrats" : "Republicans"} control the Senate`;
+  const sub = document.getElementById("hero-sub");
+  if (results) {
+    const won = results.seats.nr >= senate.majority;
+    sub.textContent = `Result: ${won ? "Democrats + independents" : "Republicans"} won control, ${results.seats.nr}–${results.seats.r}`;
+  } else {
+    sub.textContent = `${senate.n_draws.toLocaleString("en-US")} simulated elections · ${nr ? "Republicans" : "Democrats"} ${Math.round((nr ? 1 - p : p) * 100)}%`;
+  }
 }
 
 export function countUp(target, ms = 2400) {
@@ -20,12 +26,13 @@ export function countUp(target, ms = 2400) {
     .tween("text", () => { const i = d3.interpolateRound(50, target); return (t) => { num.textContent = i(t); }; });
 }
 
-/** held D | projected D | projected R | held R, majority tick at 51 */
-export function renderSeatBar(svgEl, senate, animate = false) {
+/** held D | projected D | projected R | held R, majority tick at 51. In the results view the middle
+ *  segments are the seats won and the header shows the actual split. */
+export function renderSeatBar(svgEl, senate, animate = false, results = null) {
   const W = 520, H = 60, Y = 6, BH = 28;
   const svg = d3.select(svgEl).attr("viewBox", `0 0 ${W} ${H}`);
   svg.selectAll("*").remove();
-  const med = senate.median_nr_seats;
+  const med = results ? results.seats.nr : senate.median_nr_seats;
   const up = senate.races.length;
   const segs = [
     { n: senate.not_up.nr, f: "var(--held-d)", label: "not up" },
@@ -51,8 +58,9 @@ export function renderSeatBar(svgEl, senate, animate = false) {
   svg.append("text").attr("class", "tick").attr("x", W - 2).attr("y", H - 2).attr("text-anchor", "end").text(`${senate.not_up.r} not up`);
   document.getElementById("seats-nr").textContent = med;
   document.getElementById("seats-r").textContent = 100 - med;
-  document.getElementById("seats-note").textContent =
-    "Median of the simulations. At 50–50 the Republican VP breaks ties.";
+  document.getElementById("seats-note").textContent = results
+    ? `Result (forecast median ${senate.median_nr_seats}–${100 - senate.median_nr_seats}).${results.notes.length ? " Alaska assumed." : ""}`
+    : "Median of the simulations. At 50–50 the Republican VP breaks ties.";
 }
 
 export function renderHistogram(svgEl, senate, onHover) {
@@ -78,10 +86,29 @@ export function renderHistogram(svgEl, senate, onHover) {
   svg.append("line").attr("x1", mx).attr("x2", mx).attr("y1", 0).attr("y2", H - B).attr("stroke", "var(--ink)").attr("stroke-width", 1.5).attr("stroke-dasharray", "3 3");
   svg.append("text").attr("class", "tick").attr("x", mx + 8).attr("y", 14).text("Democratic control →");
   svg.append("text").attr("class", "tick").attr("x", mx - 8).attr("y", 14).attr("text-anchor", "end").text("← Republican control");
-  return bars;
+  // results view: the actual seat count, outlined, with a label above
+  const actual = svg.append("g").attr("class", "hist-actual").style("display", "none");
+  return {
+    bars,
+    showActual(seats) {
+      actual.selectAll("*").remove();
+      if (seats == null) { actual.style("display", "none"); return; }
+      const d = dist.find((b) => b.seats === seats);
+      const cx = d ? x(seats) + x.bandwidth() / 2 : W - 4;
+      const top = d ? y(d.p) : H - B;
+      if (d) actual.append("rect").attr("x", x(seats) - 2).attr("y", top - 2).attr("width", x.bandwidth() + 4)
+        .attr("height", H - B - top + 2).attr("rx", 4).attr("fill", "none").attr("stroke", "var(--ink)").attr("stroke-width", 2.5);
+      // label clears the neighbouring bars, which can be taller
+      const near = dist.filter((b) => Math.abs(b.seats - seats) <= 1);
+      const clear = d3.min(near, (b) => y(b.p)) ?? top;
+      actual.append("text").attr("class", "tick actual-label").attr("x", cx).attr("y", Math.max(30, clear - 8))
+        .attr("text-anchor", "middle").text(`Result: ${seats}`);
+      actual.style("display", null);
+    },
+  };
 }
 
-export function renderLegend(el, senate) {
+export function renderLegend(el, senate, results = null) {
   el.replaceChildren();
   const scale = document.createElement("div");
   scale.className = "scale";
@@ -101,9 +128,26 @@ export function renderLegend(el, senate) {
     s.append(k, document.createTextNode(text)); return s;
   };
   row.append(sw("var(--norace)", "No race in 2026"));
-  if (senate.races.some((r) => r.nr.party === "I" && r.margin > 0)) row.append(sw("var(--d-lean)", "Independent ahead (hatched)", true));
+  if (results) {
+    const up = sw("transparent", "Favourite lost (dashed)");
+    up.querySelector("i").style.border = "2px dashed var(--ink)";
+    row.append(up);
+    if (results.notes.length) {
+      const a = sw("var(--d-tilt)", "* Assumed result (cross-hatched)");
+      a.querySelector("i").style.backgroundImage = "repeating-linear-gradient(45deg, rgba(255,255,255,.5) 0 1.5px, transparent 1.5px 4px), repeating-linear-gradient(-45deg, rgba(255,255,255,.5) 0 1.5px, transparent 1.5px 4px)";
+      row.append(a);
+    }
+  } else if (senate.races.some((r) => r.nr.party === "I" && r.margin > 0)) row.append(sw("var(--d-lean)", "Independent ahead (hatched)", true));
   const note = document.createElement("p");
   note.className = "disclaimer";
-  note.textContent = `Margin = difference in two-party vote share, in percentage points. Model forecast as of ${senate.as_of}, not a betting price.`;
+  if (results) {
+    const sc = results.score;
+    note.className = "disclaimer scoreline";
+    note.textContent = `Scorecard · favourite won ${sc.calls} of ${sc.n} · ${sc.covered} of ${sc.n_reported} results inside the 80% range · ` +
+      `average error ${Math.abs(sc.bias).toFixed(1)} pts toward ${sc.bias > 0 ? "D/I" : "R"} · Brier ${sc.brier.toFixed(3)} ` +
+      `(ratings ${sc.brier_consensus.toFixed(3)}). Results as of ${results.as_of}, unofficial (${results.source}).`;
+  } else {
+    note.textContent = `Margin = difference in two-party vote share, in percentage points. Model forecast as of ${senate.as_of}, not a betting price.`;
+  }
   el.append(scale, labels, row, note);
 }

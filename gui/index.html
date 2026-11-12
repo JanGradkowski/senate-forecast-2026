@@ -42,6 +42,7 @@
       <nav class="controls" id="controls" aria-label="View controls">
         <button class="ctl" data-action="tour" title="Tour the closest races (Space)">▶ Tour</button>
         <button class="ctl" data-action="reveal" title="Replay the reveal (R)">↻ Reveal</button>
+        <button class="ctl" data-action="results" title="Forecast vs results (V)" aria-pressed="false">✓ Results</button>
         <button class="ctl" data-action="table" title="Table view">▦ Table</button>
         <button class="ctl" data-action="theme" title="Light / dark (T)">◐ Theme</button>
         <button class="ctl" data-action="present" title="Presentation mode (P)">⛶ Present</button>
@@ -53,8 +54,9 @@
         </div>
         <aside class="panel" id="panel">
           <div class="panel-list" id="panel-list">
-            <h2 class="panel-title">Closest races <span class="panel-hint">projected margin</span></h2>
+            <h2 class="panel-title" id="panel-title">Closest races <span class="panel-hint">projected margin</span></h2>
             <svg id="closest" width="540" height="560" role="group" aria-label="Closest races by projected margin"></svg>
+            <svg id="versus" width="540" height="560" role="group" aria-label="Forecast against result, race by race" style="display:none"></svg>
           </div>
           <div class="card" id="card" hidden></div>
         </aside>

@@ -1,7 +1,8 @@
-// Wiring: stage scaling, tooltip, selection, tour, keyboard, theme, presentation mode, table view.
-import { binLabel, fill, fmtMargin, fmtPct, fmtRange, lastName, load } from "./data.js";
+// Wiring: stage scaling, tooltip, selection, tour, keyboard, theme, presentation mode, table view,
+// and the forecast / results views.
+import { binLabel, fill, fmtError, fmtMargin, fmtPct, fmtRange, fmtResult, lastName, load } from "./data.js";
 import { createMap } from "./map.js";
-import { createClosest, renderCard } from "./panel.js";
+import { createClosest, createVersus, renderCard } from "./panel.js";
 import { countUp, renderHero, renderHistogram, renderLegend, renderSeatBar } from "./seats.js";
 
 const $ = (id) => document.getElementById(id);
@@ -45,30 +46,37 @@ const hideTip = () => { tip.hidden = true; };
 function raceTip(race, ev) {
   if (!race) { hideTip(); hover(null); return; }
   const lead = race.p_nr >= 0.5 ? race.nr : race.r;
-  showTip([
-    ["tv", fmtMargin(race)],
-    ["tl", `${race.state} · ${binLabel(race)}`],
-    ["tl", `${lastName(race.nr.name)} (${race.nr.party}) v ${lastName(race.r.name)} (R)`],
-    ["tl", `${lastName(lead.name)} wins ${fmtPct(Math.max(race.p_nr, 1 - race.p_nr))} · 80%: ${fmtRange(race)}`],
-  ], ev, fill(race.bin));
+  const lines = mode === "results" && race.result
+    ? [["tv", fmtResult(race)],
+      ["tl", `${race.state} · ${race.result.favorite_won ? "favourite won" : "upset"}${race.result.status === "assumed" ? " · assumed" : ""}`],
+      ["tl", `Forecast ${fmtMargin(race)} · ${lastName(lead.name)} ${fmtPct(Math.max(race.p_nr, 1 - race.p_nr))}`],
+      ["tl", race.result.error == null ? race.result.note : `Off by ${fmtError(race)} · ${race.result.in80 ? "inside" : "outside"} 80% range`]]
+    : [["tv", fmtMargin(race)],
+      ["tl", `${race.state} · ${binLabel(race)}`],
+      ["tl", `${lastName(race.nr.name)} (${race.nr.party}) v ${lastName(race.r.name)} (R)`],
+      ["tl", `${lastName(lead.name)} wins ${fmtPct(Math.max(race.p_nr, 1 - race.p_nr))} · 80%: ${fmtRange(race)}`]];
+  showTip(lines, ev, fill(mode === "results" && race.result ? race.result.bin : race.bin));
   hover(race);
 }
 
 // ---- state
-let data, map, closest, selected = null, tour = null;
+let data, map, closest, versus = null, hist, selected = null, tour = null;
+let mode = "forecast"; // or "results" (when gui/data/results.json exists)
 
 function hover(race) {
   if (selected) return;
   map.highlight(race);
   closest.highlight(race);
+  versus?.highlight(race);
 }
 
 function select(race, { zoom = true } = {}) {
   selected = race;
   map.highlight(race);
   closest.highlight(race);
+  versus?.highlight(race);
   if (race) {
-    renderCard($("card"), race, () => select(null));
+    renderCard($("card"), race, () => select(null), mode === "results" && !!race.result);
     $("panel-list").style.visibility = "hidden";
     if (zoom) map.zoomTo(race);
   } else {
@@ -78,10 +86,19 @@ function select(race, { zoom = true } = {}) {
   }
 }
 
-// ---- tour: the closest races, ~4.5 s each
+// ---- tour, ~4.5 s a stop: the closest races; in the results view, the misses (upsets, then results
+// outside their 80% range)
+function tourStops() {
+  if (mode !== "results") return closest.races.slice(0, 8);
+  const rs = data.senate.races.filter((r) => r.result);
+  const fav = (r) => Math.max(r.p_nr, 1 - r.p_nr);
+  const upsets = rs.filter((r) => !r.result.favorite_won).sort((a, b) => fav(a) - fav(b)); // least to most surprising
+  const outside = rs.filter((r) => r.result.favorite_won && r.result.in80 === false);
+  return upsets.concat(outside);
+}
 function startTour() {
   if (tour) { stopTour(); return; }
-  const stops = closest.races.slice(0, 8);
+  const stops = tourStops();
   let i = 0;
   const step = () => {
     if (i >= stops.length) { stopTour(); return; }
@@ -96,9 +113,34 @@ function stopTour() { clearTimeout(tour); tour = null; select(null); }
 function reveal() {
   select(null);
   const ms = map.reveal();
-  renderSeatBar($("seatbar"), data.senate, true);
+  renderSeatBar($("seatbar"), data.senate, true, mode === "results" ? data.results : null);
   setTimeout(() => countUp(Math.round(Math.max(data.senate.p_control_nr, 1 - data.senate.p_control_nr) * 100)), Math.max(0, ms - 2400));
 }
+
+// ---- forecast / results views
+function setMode(m) {
+  if (m === "results" && !data.results) return;
+  mode = m;
+  const res = m === "results" ? data.results : null;
+  stage.classList.toggle("results-view", !!res);
+  $("title").textContent = res ? "Forecast vs results" : "Senate forecast";
+  $("subtitle").textContent = res
+    ? `Forecast ${data.senate.as_of} · results ${res.as_of}, unofficial`
+    : `Forecast from polls and fundamentals · updated ${data.senate.as_of}`;
+  $("panel-title").firstChild.textContent = res ? "Forecast vs result " : "Closest races ";
+  $("panel-title").querySelector(".panel-hint").textContent = res ? "○ forecast  ● result · ✗ upset" : "projected margin";
+  $("closest").style.display = res ? "none" : null;
+  $("versus").style.display = res ? null : "none";
+  document.querySelectorAll('[data-action="results"]').forEach((b) => b.setAttribute("aria-pressed", String(!!res)));
+  map.setMode(m);
+  renderHero(data.senate, res);
+  renderSeatBar($("seatbar"), data.senate, false, res);
+  hist.showActual(res ? res.seats.nr : null);
+  renderLegend($("legend"), data.senate, res);
+  buildTable(data.senate, !!res);
+  if (selected) select(selected, { zoom: false });
+}
+const toggleResults = () => setMode(mode === "results" ? "forecast" : "results");
 
 // ---- theme, presentation, table
 function setTheme(t) {
@@ -113,19 +155,22 @@ function toggleTable() {
   else document.querySelector('.controls [data-action="table"]').focus();
 }
 
-function buildTable(senate) {
+function buildTable(senate, withResults = false) {
   const t = $("race-table");
   const market = senate.races.some((r) => r.p_market != null);
   const head = ["State", "Democrat / Independent", "Republican", "Projected margin", "80% range", "Rating", "Win chance (D/I)", "Forecaster ratings"]
-    .concat(market ? ["Market"] : []);
+    .concat(market ? ["Market"] : [], withResults ? ["Result", "Error", "In 80% range", "Favourite won"] : []);
   const tr = document.createElement("tr");
   head.forEach((h) => { const th = document.createElement("th"); th.textContent = h; tr.append(th); });
   const thead = document.createElement("thead"); thead.append(tr);
   const tbody = document.createElement("tbody");
   [...senate.races].sort((a, b) => a.margin - b.margin).forEach((r) => {
     const row = document.createElement("tr");
+    const res = r.result;
     [[r.state], [`${r.nr.name} (${r.nr.party})`], [r.r.name], [fmtMargin(r), 1], [fmtRange(r)], [binLabel(r)],
-      [fmtPct(r.p_nr), 1], [fmtPct(r.p_consensus), 1]].concat(market ? [[fmtPct(r.p_market), 1]] : []).forEach(([v, num]) => {
+      [fmtPct(r.p_nr), 1], [fmtPct(r.p_consensus), 1]].concat(market ? [[fmtPct(r.p_market), 1]] : [],
+      withResults ? [[fmtResult(r), 1], [fmtError(r), 1], [res?.in80 == null ? "–" : res.in80 ? "yes" : "no"],
+        [res ? (res.favorite_won ? "yes" : "no (upset)") : "–"]] : []).forEach(([v, num]) => {
       const td = document.createElement("td"); td.textContent = v; if (num) td.className = "num"; row.append(td);
     });
     tbody.append(row);
@@ -142,9 +187,11 @@ window.addEventListener("keydown", (ev) => {
   else if (k === "r") reveal();
   else if (k === "t") setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
   else if (k === "p") togglePresent();
+  else if (k === "v") toggleResults();
 });
 document.querySelectorAll("[data-action]").forEach((b) => b.addEventListener("click", () => {
-  ({ tour: startTour, reveal, table: toggleTable, theme: () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"), present: togglePresent })[b.dataset.action]();
+  ({ tour: startTour, reveal, table: toggleTable, results: toggleResults,
+    theme: () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"), present: togglePresent })[b.dataset.action]();
   b.blur();
 }));
 
@@ -157,11 +204,14 @@ document.querySelectorAll("[data-action]").forEach((b) => b.addEventListener("cl
   renderSeatBar($("seatbar"), s);
   map = createMap($("map"), data, { onHover: raceTip, onSelect: (r) => select(selected === r ? null : r) });
   closest = createClosest($("closest"), s, { onHover: raceTip, onSelect: (r) => select(selected === r ? null : r) });
-  renderHistogram($("hist"), s, (d, ev) => d ? showTip([["tv", fmtPct(d.p)], ["tl", `${d.seats} Dem + Ind seats`]], ev) : hideTip());
+  if (data.results) versus = createVersus($("versus"), s, { onHover: raceTip, onSelect: (r) => select(selected === r ? null : r) });
+  else document.querySelectorAll('[data-action="results"]').forEach((b) => (b.hidden = true));
+  hist = renderHistogram($("hist"), s, (d, ev) => d ? showTip([["tv", fmtPct(d.p)], ["tl", `${d.seats} Dem + Ind seats`]], ev) : hideTip());
   renderLegend($("legend"), s);
   buildTable(s);
   map.relabel();
   if (params.has("present")) togglePresent();
+  if (params.has("results")) setMode("results");
   if (params.get("reveal") !== "0") reveal();
   if (params.get("tour") === "auto") setTimeout(startTour, 5200);
   const open = s.races.find((r) => r.postal === (params.get("race") || "").toUpperCase());

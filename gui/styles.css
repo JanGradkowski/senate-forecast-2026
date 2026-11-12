@@ -119,6 +119,22 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--focus)
 .gridline { stroke: var(--grid); stroke-width: 1; }
 .tick { font-size: 15px; fill: var(--muted); font-variant-numeric: tabular-nums; }
 
+/* results view: forecast (hollow) vs result (filled), upsets dashed */
+#versus .vs-state { font-size: 15px; font-weight: 700; fill: var(--ink); }
+#versus .vs-link { stroke: var(--muted); stroke-width: 2; }
+#versus .vs-forecast { fill: var(--surface); stroke: var(--ink-2); stroke-width: 2; }
+#versus .vs-result { stroke: var(--surface); stroke-width: 1.5; }
+#versus .vs-clip { fill: var(--ink-2); }
+#versus .vs-value { font-size: 14px; fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+#versus .vs-mark { font-size: 15px; font-weight: 800; }
+#versus .vs-mark.ok { fill: var(--muted); }
+#versus .vs-mark.miss { fill: var(--ink); }
+.upset { fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+.card-result { stroke: var(--surface-2); stroke-width: 2; }
+.hist-actual .actual-label { fill: var(--ink); font-weight: 700; }
+.disclaimer.scoreline { color: var(--ink-2); }
+.ctl[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); }
+
 /* detail card */
 .card {
   position: absolute; inset: 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px;
