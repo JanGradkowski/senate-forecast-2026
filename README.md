@@ -27,9 +27,9 @@ Republicans keep control in 20%.
 |---|---|---|---|---|---|
 | Iowa | Josh Turek (D) v Ashley Hinson (R) | D +0.1 | R +6 to D +7 | Turek 51% | Toss-up |
 | Alaska | Mary Peltola (D) v Dan S. Sullivan (R) | R +0.2 | R +12 to D +12 | Sullivan 52% | Toss-up |
-| Nebraska | Dan Osborn (I) v Pete Ricketts (R) | R +1.2 | R +14 to I +12 | Ricketts 61% | Tilt Rep |
+| Nebraska | Dan Osborn (I) v Pete Ricketts (R) | R +1.3 | R +14 to I +12 | Ricketts 61% | Tilt Rep |
 | Maine | Troy Jackson (D) v Susan Collins (R) | D +1.9 | R +5 to D +9 | Jackson 73% | Tilt Dem |
-| Kansas | Adam Hamilton (D) v Roger Marshall (R) | R +2.5 | R +12 to D +7 | Marshall 74% | Tilt Rep |
+| Kansas | Adam Hamilton (D) v Roger Marshall (R) | R +2.6 | R +12 to D +7 | Marshall 74% | Tilt Rep |
 | South Carolina | Annie Andrews (D) v Darline Graham (R) | R +3.0 | R +13 to D +7 | Graham 77% | Tilt Rep |
 | Texas | James Talarico (D) v Ken Paxton (R) | D +3.0 | R +2 to D +8 | Talarico 85% | Lean Dem |
 | Ohio (special) | Sherrod Brown (D) v Jon Husted (R) | D +3.7 | R +3 to D +10 | Brown 88% | Lean Dem |

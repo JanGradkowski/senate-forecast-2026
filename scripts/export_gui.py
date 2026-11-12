@@ -47,10 +47,10 @@ def build(market: bool = False) -> dict:
             "race_id": r.race_id, "state": r.state, "postal": r.state_po, "special": bool(r.special),
             "nr": {"name": r.cand_nr, "party": r.nr_party}, "r": {"name": r.cand_r, "party": "R"},
             "incumbent": {1: "nr", -1: "r"}.get(int(r.incumbent), None),
-            "margin": _num(r.mu, 2), "lo80": _num(r.lo80, 2), "hi80": _num(r.hi80, 2),
+            "margin": _num(r.mu), "lo80": _num(r.lo80), "hi80": _num(r.hi80),  # 3 decimals: the GUI rounds once
             "p_nr": _num(r.p_nr), "p_runoff": _num(r.p_runoff), "p_consensus": _num(r.p_consensus),
             "p_market": _num(p_mkt.get(r.race_id)),
-            "polls": {"n": int(r.n_polls) if pd.notna(r.n_polls) else 0, "avg": _num(r.poll_avg, 2)},
+            "polls": {"n": int(r.n_polls) if pd.notna(r.n_polls) else 0, "avg": _num(r.poll_avg)},
             "rcv": bool(r.rcv), "runoff": r.runoff_rule == "majority", "notes": r.notes if isinstance(r.notes, str) else "",
         })
     mtime = pd.Timestamp(os.path.getmtime(ARTIFACTS / "forecast_2026.csv"), unit="s", tz="UTC").tz_convert("Europe/Brussels")
