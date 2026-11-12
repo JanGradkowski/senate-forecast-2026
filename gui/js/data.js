@@ -11,13 +11,27 @@ export const LEVELS = [
 ];
 
 export async function load() {
-  const [senate, us] = await Promise.all([
+  const [senate, us, results] = await Promise.all([
     fetch("data/senate.json").then((r) => r.json()),
     fetch(US_ATLAS).then((r) => r.json()),
+    // optional: actual results (scripts/results_2026.py); without it the map is forecast-only
+    fetch("data/results.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
   ]);
   const states = topojson.feature(us, us.objects.states).features;
-  senate.races.forEach((r) => (r.bin = binOf(r.margin)));
-  return { senate, states, mesh: topojson.mesh(us, us.objects.states, (a, b) => a !== b) };
+  const byId = new Map((results?.races || []).map((x) => [x.race_id, x]));
+  senate.races.forEach((r) => {
+    r.bin = binOf(r.margin);
+    r.result = byId.get(r.race_id) || null;
+    if (r.result) r.result.bin = resultBin(r.result);
+  });
+  return { senate, states, results, mesh: topojson.mesh(us, us.objects.states, (a, b) => a !== b) };
+}
+
+/** The bin a result is drawn in. An assumed result has a winner but no margin: it takes the winner's
+ *  lowest bin and is drawn hatched. */
+export function resultBin(res) {
+  if (res.margin == null) return { side: res.winner, level: "tilt", assumed: true };
+  return binOf(res.margin);
 }
 
 export function binOf(m) {
@@ -45,6 +59,21 @@ export function fmtMargin(race, digits = 1) {
   const m = race.margin;
   if (Math.abs(m) < 0.05) return "Even";
   return `${m > 0 ? race.nr.party : "R"} +${Math.abs(m).toFixed(digits)}`;
+}
+
+/** The result in the same format: "D +4.2", or "D win (assumed)" when there is no margin yet. */
+export function fmtResult(race, digits = 1) {
+  const res = race.result;
+  if (!res) return "–";
+  if (res.margin == null) return `${res.winner === "nr" ? race.nr.party : "R"} win (assumed)`;
+  return fmtMargin({ ...race, margin: res.margin }, digits);
+}
+
+/** Error of the forecast: "4.2 toward D", "5.4 toward R". */
+export function fmtError(race) {
+  const e = race.result?.error;
+  if (e == null) return "–";
+  return `${Math.abs(e).toFixed(1)} toward ${e > 0 ? race.nr.party : "R"}`;
 }
 
 export function fmtRange(race, sep = " to ") {
